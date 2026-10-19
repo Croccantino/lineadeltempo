@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import { Caveat, IBM_Plex_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const caveat = Caveat({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["600"],
-  variable: "--font-caveat",
-});
-
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-ibm",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -25,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it" className={`${caveat.variable} ${ibmPlexSans.variable}`}>
+    <html lang="it" className={inter.variable}>
       <body>{children}</body>
     </html>
   );

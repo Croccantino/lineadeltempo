@@ -44,52 +44,29 @@
 * {
   box-sizing: border-box;
 }
-
 body {
   margin: 0;
   background-color: var(--bg);
+  background-image: none !important;
   color: var(--ink);
-  font: 15px/1.4 var(--font-ibm), "IBM Plex Sans", system-ui, sans-serif;
+  font: 15px/1.5 var(--font-inter), "Inter", system-ui, sans-serif;
   min-height: 100vh;
-}
-
-body.rot {
-  overflow: hidden;
-}
-
-body.rot #app {
-  position: fixed;
-  top: 0;
-  left: 100vw;
-  width: 100vh;
-  height: 100vw;
-  transform-origin: 0 0;
-  transform: rotate(90deg);
-  overflow: auto;
-  background: inherit;
-}
-
-body.rot dialog {
-  transform: rotate(90deg);
-  width: min(560px, calc(100vh - 24px));
-  max-height: calc(100vw - 24px);
-  overflow: auto;
-}
-
-body.rot textarea {
-  min-height: 56px;
 }
 
 header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 10px 16px 4px;
+  padding: 14px 20px 8px;
+  max-width: 1300px;
+  margin: 0 auto;
 }
 
 h1 {
-  font: 600 28px/1.1 var(--font-caveat), Caveat, "Segoe Print", cursive;
+  font: 700 24px/1.2 var(--font-inter), "Inter", system-ui, sans-serif;
+  letter-spacing: -0.4px;
   margin: 0;
   flex: 1 1 auto;
 }
@@ -142,13 +119,17 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 .wrap {
   overflow-x: auto;
-  padding: 8px 16px 32px;
+  padding: 12px 20px 36px;
+  display: flex;
 }
 
 .tl {
   border: 2px solid var(--ink);
   background: var(--card);
   width: max-content;
+  margin: 0 auto;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
   position: relative;
 }
 
@@ -179,8 +160,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   width: 100%;
   height: 100%;
   text-align: left;
-  font: 600 20px var(--font-caveat), Caveat, cursive;
-  padding: 8px 10px;
+  font: 600 15px var(--font-inter), "Inter", system-ui, sans-serif;
+  padding: 8px 12px;
   min-height: 44px;
   display: flex;
   align-items: center;

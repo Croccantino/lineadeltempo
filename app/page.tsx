@@ -19,7 +19,6 @@ export default function TimelinePage() {
   const [rows, setRows] = useState<TimelineRow[]>([]);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [ppy, setPpy] = useState<number>(10);
-  const [isRotated, setIsRotated] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
 
   // Stato Modale
@@ -181,7 +180,7 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className={isRotated ? "rot" : ""}>
+    <div>
       <div id="app">
         <header>
           <h1>
@@ -197,7 +196,6 @@ export default function TimelinePage() {
               +
             </button>
             <button onClick={handleFit}>Adatta</button>
-            <button onClick={() => setIsRotated(!isRotated)}>Ruota 90°</button>
             <button onClick={handleAddCountry}>+ Paese</button>
           </div>
         </header>
@@ -297,7 +295,7 @@ export default function TimelinePage() {
       {/* Dialog Modale */}
       <dialog ref={dialogRef} id="dlg" onClose={() => setModalOpen(false)}>
         <form onSubmit={handleSaveEvent} id="f">
-          <h2 style={{ margin: 0, font: "600 24px var(--font-caveat), Caveat, cursive" }}>
+          <h2 style={{ margin: 0, font: "600 22px var(--font-inter), 'Inter', sans-serif" }}>
             {editingEvent ? "Modifica Evento" : "Nuovo Evento"}
           </h2>
 

@@ -81,6 +81,4 @@ $("zi").onclick=()=>{S.ppy=Math.min(200,S.ppy*1.4);save();render()};
 $("zo").onclick=()=>{S.ppy=Math.max(1,S.ppy/1.4);save();render()};
 $("fit").onclick=()=>{fit();save();render()};
 $("addRow").onclick=()=>{const n=prompt("Nome del paese");if(n){S.rows.push({id:uid("r"),name:n});save();render()}};
-$("rot").onclick=()=>document.body.classList.toggle("rot");
-if(window.matchMedia("(orientation: portrait)").matches)document.body.classList.add("rot");
 render();

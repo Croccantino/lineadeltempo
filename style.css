@@ -4,22 +4,19 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 :root[data-theme="dark"]{color-scheme:dark;--bg:#151b28;--grid:#243047;--ink:#e9eef8;--card:#1e2637;--muted:#97a3bb;--blue:#3f6fae;--green:#3f8a52;--red:#a84b4b;--yellow:#a8902f}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;background-color:var(--bg);background-image:none!important;color:var(--ink);font:15px/1.4 "IBM Plex Sans",system-ui,sans-serif;min-height:100vh}
-body.rot{overflow:hidden}
-body.rot #app{position:fixed;top:0;left:100vw;width:100vh;height:100vw;transform-origin:0 0;transform:rotate(90deg);overflow:auto;background:inherit}
-body.rot dialog{transform:rotate(90deg);width:min(560px,calc(100vh - 24px));max-height:calc(100vw - 24px);overflow:auto}
-body.rot textarea{min-height:56px}
-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px 4px}
-h1{font:600 28px/1.1 Caveat,"Segoe Print",cursive;margin:0;flex:1 1 auto}
+body{margin:0;background-color:var(--bg);background-image:none!important;color:var(--ink);font:15px/1.5 "Inter",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 20px 8px;max-width:1300px;margin:0 auto}
+h1{font:700 24px/1.2 "Inter",system-ui,sans-serif;letter-spacing:-0.4px;margin:0;flex:1 1 auto}
 .bar{display:flex;gap:8px;flex-wrap:wrap}
-button,select{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--ink);border-radius:4px;padding:6px 10px;cursor:pointer;min-height:40px}
+button,select{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer;min-height:38px;font-weight:500;transition:background .15s}
+button:hover{background:var(--grid)}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #2f7bf0;outline-offset:2px}
-.wrap{overflow-x:auto;padding:8px 16px 32px}
-.tl{border:2px solid var(--ink);background:var(--card);width:max-content}
+.wrap{overflow-x:auto;padding:12px 20px 36px;display:flex}
+.tl{border:2px solid var(--ink);background:var(--card);width:max-content;margin:0 auto;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.06)}
 .line{display:flex;border-bottom:1.5px solid var(--ink)}
 .line:last-child{border-bottom:0}
-.lab{flex:0 0 110px;position:sticky;left:0;z-index:3;background:var(--card);border-right:2px solid var(--ink)}
-.lab button{border:0;background:transparent;width:100%;height:100%;text-align:left;font:600 20px Caveat,cursive;padding:8px;min-height:44px;align-items:flex-start}
+.lab{flex:0 0 120px;position:sticky;left:0;z-index:3;background:var(--card);border-right:2px solid var(--ink)}
+.lab button{border:0;background:transparent;width:100%;height:100%;text-align:left;font:600 15px "Inter",system-ui,sans-serif;padding:10px;min-height:44px;align-items:flex-start}
 .trk{position:relative;flex:0 0 auto}
 .axis{height:30px}
 .tick{position:absolute;top:0;bottom:0;border-left:1px dashed var(--muted);pointer-events:none;opacity:.7}
