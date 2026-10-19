@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Linea del tempo – Guerre di religione in Europa</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+<header>
+<h1>Guerre di religione in Europa</h1>
+<div class="bar">
+<button id="addEv">+ Evento</button>
+<button id="zo" aria-label="Riduci la scala">−</button>
+<button id="zi" aria-label="Ingrandisci la scala">+</button>
+<button id="fit">Adatta</button>
+<button id="rot">Ruota 90°</button>
+<button id="addRow">+ Paese</button>
+</div>
+</header>
+<p class="hint">Gli eventi si dispongono in base all’anno. Tocca uno spazio vuoto di una riga per aggiungere un evento in quel punto.</p>
+<div class="wrap"><div class="tl" id="tl"></div></div>
+</div>
+
+<dialog id="dlg">
+<form method="dialog" id="f">
+<h2 id="dt" style="margin:0;font:600 24px Caveat,cursive">Evento</h2>
+<label for="p">Paese</label><select id="p"></select>
+<label for="y">Anno</label><input id="y" type="number" inputmode="numeric" required placeholder="1998">
+<label for="t">Nome</label><input id="t" required placeholder="Nome evento">
+<label for="n">Appunti</label><textarea id="n" placeholder="Cause, protagonisti, conseguenze…"></textarea>
+<label>Colore evidenziatore</label>
+<div class="swatches" id="sw"></div>
+<div class="row">
+<button type="submit" class="grow">Salva</button>
+<button type="button" id="del" class="danger">Elimina</button>
+<button type="button" id="close">Chiudi</button>
+</div>
+</form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+Linea del tempo - Guerre di religione in Europa
+
+Apri index.html in un browser (serve internet solo per i font).
+Tieni insieme i file index.html, style.css e app.js nella stessa cartella.
+I dati si salvano nel browser (localStorage).
