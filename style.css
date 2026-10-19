@@ -4,7 +4,7 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 :root[data-theme="dark"]{color-scheme:dark;--bg:#151b28;--grid:#243047;--ink:#e9eef8;--card:#1e2637;--muted:#97a3bb;--blue:#3f6fae;--green:#3f8a52;--red:#a84b4b;--yellow:#a8902f}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;color:var(--ink);font:15px/1.4 "IBM Plex Sans",system-ui,sans-serif;min-height:100vh}
+body{margin:0;background-color:var(--bg);color:var(--ink);font:15px/1.4 "IBM Plex Sans",system-ui,sans-serif;min-height:100vh}
 body.rot{overflow:hidden}
 body.rot #app{position:fixed;top:0;left:100vw;width:100vh;height:100vw;transform-origin:0 0;transform:rotate(90deg);overflow:auto;background:inherit}
 body.rot dialog{transform:rotate(90deg);width:min(560px,calc(100vh - 24px));max-height:calc(100vw - 24px);overflow:auto}
