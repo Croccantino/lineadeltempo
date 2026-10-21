@@ -11,7 +11,7 @@ h1{font:700 24px/1.2 "Inter",system-ui,sans-serif;letter-spacing:-0.4px;margin:0
 button,select{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer;min-height:38px;font-weight:500;transition:background .15s}
 button:hover{background:var(--grid)}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #2f7bf0;outline-offset:2px}
-.wrap{overflow-x:auto;padding:12px 20px 36px;display:flex}
+.wrap{overflow-x:auto;padding:12px 0 36px;display:flex}
 .tl{border:2px solid var(--ink);background:var(--card);width:max-content;margin:0 auto;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.06)}
 .line{display:flex;border-bottom:1.5px solid var(--ink)}
 .line:last-child{border-bottom:0}
@@ -40,7 +40,7 @@ textarea{min-height:80px;resize:vertical}
 .swatches input{width:auto}
 .badge-client{display:inline-flex;align-items:center;background:#2563eb;color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:9999px}
 .badge-edit{display:inline-flex;align-items:center;background:#d97706;color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:9999px}
-.btn-edit-nav{display:inline-flex;align-items:center;background:#1d4ed8;color:#fff!important;text-decoration:none;font-weight:600;padding:6px 14px;border-radius:6px;border:1.5px solid #1e40af;min-height:38px}
-.btn-edit-nav:hover{background:#1e40af}
+.btn-edit-nav{display:inline-flex;align-items:center;background:var(--card);color:var(--ink)!important;text-decoration:none;font-weight:500;padding:6px 12px;border-radius:6px;border:1.5px solid var(--ink);min-height:38px}
+.btn-edit-nav:hover{background:var(--grid)}
 .btn-back-nav{display:inline-flex;align-items:center;background:var(--card);color:var(--ink)!important;text-decoration:none;font-weight:600;padding:6px 14px;border-radius:6px;border:1.5px solid var(--ink);min-height:38px}
 .btn-back-nav:hover{background:var(--grid)}

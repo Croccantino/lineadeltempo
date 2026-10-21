@@ -180,7 +180,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 .wrap {
   overflow-x: auto;
-  padding: 16px 22px 40px;
+  padding: 16px 0 40px;
   display: flex;
 }
 
@@ -192,7 +192,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   position: relative;
-  overflow: hidden;
 }
 
 .line {
@@ -472,22 +471,24 @@ textarea {
 .btn-edit-nav {
   display: inline-flex;
   align-items: center;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: #fff !important;
+  gap: 6px;
+  background: var(--card);
+  color: var(--ink) !important;
   text-decoration: none;
-  font-weight: 600;
-  padding: 7px 16px;
+  font-weight: 500;
+  padding: 7px 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  min-height: 38px;
-  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35);
-  transition: filter 0.15s, transform 0.08s, box-shadow 0.15s;
+  border: 1px solid var(--border);
+  min-height: 40px;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.16s, border-color 0.16s, transform 0.08s, box-shadow 0.16s;
 }
 
 .btn-edit-nav:hover {
-  filter: brightness(1.08);
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(29, 78, 216, 0.45);
 }
 
 .btn-back-nav {
@@ -681,7 +682,7 @@ textarea {
     font-size: 21px;
   }
   .wrap {
-    padding: 12px 12px 32px;
+    padding: 12px 0 32px;
   }
   .hint {
     padding: 0 14px;

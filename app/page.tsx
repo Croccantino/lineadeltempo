@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { TimelineRow, TimelineEvent, TimelineData } from "./api/eventi/route";
+import { INITIAL_DATA } from "../lib/initialData";
 import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
 
 const STORAGE_KEY = "timeline-proporzionale-nextjs-v1";
@@ -11,8 +12,8 @@ const LH = 54;
 const PAD = 14;
 
 export default function ClientTimelinePage() {
-  const [rows, setRows] = useState<TimelineRow[]>([]);
-  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [rows, setRows] = useState<TimelineRow[]>(INITIAL_DATA.rows);
+  const [events, setEvents] = useState<TimelineEvent[]>(INITIAL_DATA.events);
   const [ppy, setPpy] = useState<number>(10);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [firebaseConnected, setFirebaseConnected] = useState<boolean>(false);
@@ -30,25 +31,31 @@ export default function ClientTimelinePage() {
       setFirebaseConnected(true);
     });
 
-    // 2. Se Firebase non ha ancora inviato dati, carica da localStorage o API
+    // 2. Carica da localStorage se valido, altrimenti dall'API (dati iniziali come fallback)
+    let usedStorage = false;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.rows && parsed.events) {
+        if (Array.isArray(parsed.rows) && parsed.rows.length > 0 && Array.isArray(parsed.events)) {
           setRows(parsed.rows);
           setEvents(parsed.events);
           if (parsed.ppy) setPpy(parsed.ppy);
+          usedStorage = true;
         }
       } catch (e) {}
-    } else {
+    }
+
+    if (!usedStorage) {
       fetch("/api/eventi")
         .then((res) => res.json())
         .then((data: TimelineData) => {
-          setRows(data.rows);
-          setEvents(data.events);
+          if (Array.isArray(data.rows) && data.rows.length > 0) {
+            setRows(data.rows);
+            setEvents(data.events);
+          }
         })
-        .catch(console.error);
+        .catch(() => {});
     }
 
     return () => unsubscribe();
