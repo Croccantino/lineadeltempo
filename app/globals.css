@@ -212,7 +212,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   flex: 0 0 132px;
   position: sticky;
   left: 0;
-  z-index: 3;
+  z-index: 5;
   background: color-mix(in srgb, var(--card) 92%, var(--bg));
   border-right: 1px solid var(--border);
   display: flex;
@@ -244,6 +244,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 .trk {
   position: relative;
+  z-index: 0;
   flex: 0 0 auto;
   min-height: 54px;
   cursor: crosshair;
