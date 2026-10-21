@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { TimelineRow, TimelineEvent, TimelineData } from "./api/eventi/route";
 import { INITIAL_DATA } from "../lib/initialData";
 import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
@@ -155,16 +154,11 @@ export default function ClientTimelinePage() {
               Tutti
             </button>
           </div>
-
-          {/* PULSANTE MODIFICA NELLA NAVBAR */}
-          <Link href="/modifica" className="btn-edit-nav">
-            ✏️ Modifica
-          </Link>
         </div>
       </header>
 
       <p className="hint">
-        💡 <strong>Modalità Lettura</strong>: Clicca su un evento per visualizzare la scheda di approfondimento storico e gli appunti. Usa il pulsante <strong>Modifica</strong> per gestire gli eventi.
+        💡 <strong>Modalità Lettura</strong>: Clicca su un evento per visualizzare la scheda di approfondimento storico e gli appunti.
       </p>
 
       <div className="wrap">
@@ -253,9 +247,6 @@ export default function ClientTimelinePage() {
             </div>
 
             <div className="dialog-footer">
-              <Link href={`/modifica?event=${selectedEvent.id}`} className="btn-secondary" style={{ marginRight: "auto" }}>
-                ✏️ Modifica questo evento
-              </Link>
               <button type="button" onClick={() => setSelectedEvent(null)}>
                 Chiudi
               </button>

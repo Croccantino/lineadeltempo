@@ -13,6 +13,7 @@ const uid=p=>p+Math.random().toString(36).slice(2,8);
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 const $=id=>document.getElementById(id);
 let cur=null,yMin=1990;
+const EDIT_MODE=!!$("addEv");
 
 function range(){
 const ys=S.ev.map(e=>e.y).filter(Number.isFinite);
@@ -59,22 +60,42 @@ $("del").style.display=e?"":"none";
 $("dlg").showModal();
 }
 
+function openInfo(e){
+  cur={...e};
+  $("dt").textContent="Dettaglio evento";
+  const row=S.rows.find(r=>r.id===e.r);
+  $("p").innerHTML=row?`<option>${esc(row.name)}</option>`:"";
+  $("y").value=e.y;$("t").value=e.t;$("n").value=e.n||"";
+  $("sw").innerHTML=COLORS.map(([k,l])=>`<label><input type="radio" disabled ${e.col===k?"checked":""}>${l}</label>`).join("");
+  ["p","y","t","n"].forEach(id=>$(id).disabled=true);
+  const sub=document.querySelector('#f button[type="submit"]');if(sub)sub.style.display="none";
+  $("del").style.display="none";
+  $("dlg").showModal();
+}
+
 $("tl").addEventListener("click",x=>{
 const b=x.target.closest("button");
-if(b&&b.dataset.e){openDlg(S.ev.find(o=>o.id===b.dataset.e));return}
+if(b&&b.dataset.e){
+  const found=S.ev.find(o=>o.id===b.dataset.e);
+  if(!found)return;
+  if(EDIT_MODE)openDlg(found);else openInfo(found);
+  return;
+}
+if(!EDIT_MODE)return;
 if(b&&b.dataset.hr){const o=S.rows.find(q=>q.id===b.dataset.hr),n=prompt("Nome del paese",o.name);if(n){o.name=n;save();render()}return}
 if(x.target.classList.contains("trk")&&x.target.dataset.r){
 openDlg(null,x.target.dataset.r,Math.round(yMin+(x.offsetX-PAD)/S.ppy));
 }
 });
 $("f").addEventListener("submit",()=>{
+if(!EDIT_MODE)return;
 const col=(document.querySelector("input[name=col]:checked")||{}).value||"blue";
 const e={id:cur.id,r:$("p").value,y:parseInt($("y").value,10),t:$("t").value.trim(),n:$("n").value.trim(),col};
 const i=S.ev.findIndex(o=>o.id===e.id);
 if(i>=0)S.ev[i]=e;else S.ev.push(e);
 save();render();
 });
-$("del").onclick=()=>{S.ev=S.ev.filter(o=>o.id!==cur.id);save();render();$("dlg").close()};
+if(EDIT_MODE)$("del").onclick=()=>{S.ev=S.ev.filter(o=>o.id!==cur.id);save();render();$("dlg").close()};
 $("close").onclick=()=>$("dlg").close();
 $("addEv")&&($("addEv").onclick=()=>openDlg(null));
 $("zi").onclick=()=>{S.ppy=Math.min(200,S.ppy*1.4);save();render()};
