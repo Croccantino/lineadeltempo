@@ -607,6 +607,52 @@ textarea {
   font-weight: 600;
 }
 
+/* Filtro intervallo anni */
+.range-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--card) 72%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.range-group .range-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+}
+
+.range-group input[type="number"] {
+  width: 76px;
+  min-height: 32px;
+  padding: 4px 7px;
+  text-align: center;
+  border-radius: 7px;
+  box-shadow: none;
+  background: var(--card);
+}
+
+.range-group input[type="number"]::-webkit-inner-spin-button,
+.range-group input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.45;
+}
+
+.range-group .range-sep {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.range-group button {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* Scrollbar elegante */
 .wrap::-webkit-scrollbar {
   height: 10px;

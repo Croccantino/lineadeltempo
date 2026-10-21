@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Modifica – Linea del tempo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=4">
+<style>
+body { background-image: none !important; }
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+<div>
+<h1>Gestione Linea del Tempo</h1>
+<div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+<span class="badge-edit">✏️ Modalità Modifica</span>
+</div>
+</div>
+<div class="bar">
+<a href="index.html" class="btn-back-nav">← Torna alla Vista Client</a>
+<button id="addEv">+ Evento</button>
+<button id="addRow">+ Paese</button>
+<button id="zo" aria-label="Riduci la scala">−</button>
+<button id="zi" aria-label="Ingrandisci la scala">+</button>
+<button id="fit">Adatta</button>
+</div>
+</header>
+<p class="hint">💡 <strong>Istruzioni Modifica</strong>: Clicca su uno spazio vuoto di una riga per inserire un evento in quel punto. Clicca su un evento per modificarlo o eliminarlo. Clicca sul nome di un paese per rinominarlo. I dati si salvano nel browser (localStorage).</p>
+<div class="wrap"><div class="tl" id="tl"></div></div>
+</div>
+
+<dialog id="dlg">
+<form method="dialog" id="f">
+<h2 id="dt" style="margin:0;font:600 22px 'Inter',sans-serif">Evento</h2>
+<label for="p">Paese</label><select id="p"></select>
+<label for="y">Anno</label><input id="y" type="number" inputmode="numeric" required placeholder="1998">
+<label for="t">Nome</label><input id="t" required placeholder="Nome evento">
+<label for="n">Appunti</label><textarea id="n" placeholder="Cause, protagonisti, conseguenze…"></textarea>
+<label>Colore evidenziatore</label>
+<div class="swatches" id="sw"></div>
+<div class="row">
+<button type="submit" class="grow">Salva</button>
+<button type="button" id="del" class="danger">Elimina</button>
+<button type="button" id="close">Chiudi</button>
+</div>
+</form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

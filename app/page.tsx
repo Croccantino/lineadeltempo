@@ -16,6 +16,8 @@ export default function ClientTimelinePage() {
   const [ppy, setPpy] = useState<number>(10);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [firebaseConnected, setFirebaseConnected] = useState<boolean>(false);
+  const [rangeFrom, setRangeFrom] = useState<number | "">("");
+  const [rangeTo, setRangeTo] = useState<number | "">("");
 
   // Inizializzazione: ascolto Realtime Firebase o fallback localStorage / API
   useEffect(() => {
@@ -52,11 +54,22 @@ export default function ClientTimelinePage() {
     return () => unsubscribe();
   }, []);
 
-  // Anno min e max
+  // Anno min e max (dai dati completi)
   const years = events.map((e) => e.y).filter(Number.isFinite);
-  const minYear = years.length ? Math.min(...years) : 1550;
-  let maxYear = years.length ? Math.max(...years) : 1650;
+  const dataMin = years.length ? Math.min(...years) : 1550;
+  const dataMax = years.length ? Math.max(...years) : 1650;
+
+  // Intervallo scelto dall'utente (vuoto = tutti gli anni)
+  const rawFrom = rangeFrom === "" ? dataMin : rangeFrom;
+  const rawTo = rangeTo === "" ? dataMax : rangeTo;
+  const minYear = Math.min(rawFrom, rawTo);
+  let maxYear = Math.max(rawFrom, rawTo);
   if (minYear === maxYear) maxYear = minYear + 1;
+
+  // Eventi visibili nell'intervallo scelto
+  const visibleEvents = events.filter(
+    (e) => Number.isFinite(e.y) && e.y >= minYear && e.y <= maxYear
+  );
 
   const step = (p: number) => {
     for (const s of [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]) {
@@ -106,6 +119,36 @@ export default function ClientTimelinePage() {
           </button>
           <button onClick={handleFit}>Adatta</button>
 
+          <div className="range-group" title="Mostra solo gli eventi compresi tra questi due anni">
+            <span className="range-label">Anni</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              aria-label="Anno iniziale"
+              placeholder={String(dataMin)}
+              value={rangeFrom}
+              onChange={(e) => setRangeFrom(e.target.value === "" ? "" : Number(e.target.value))}
+            />
+            <span className="range-sep">–</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              aria-label="Anno finale"
+              placeholder={String(dataMax)}
+              value={rangeTo}
+              onChange={(e) => setRangeTo(e.target.value === "" ? "" : Number(e.target.value))}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setRangeFrom("");
+                setRangeTo("");
+              }}
+            >
+              Tutti
+            </button>
+          </div>
+
           {/* PULSANTE MODIFICA NELLA NAVBAR */}
           <Link href="/modifica" className="btn-edit-nav">
             ✏️ Modifica
@@ -133,7 +176,7 @@ export default function ClientTimelinePage() {
 
           {/* Righe dei Paesi */}
           {rows.map((row) => {
-            const rowEvents = events
+            const rowEvents = visibleEvents
               .filter((e) => e.r === row.id && Number.isFinite(e.y))
               .sort((a, b) => a.y - b.y);
 
@@ -203,7 +246,7 @@ export default function ClientTimelinePage() {
             </div>
 
             <div className="dialog-footer">
-              <Link href="/modifica" className="btn-secondary" style={{ marginRight: "auto" }}>
+              <Link href={`/modifica?event=${selectedEvent.id}`} className="btn-secondary" style={{ marginRight: "auto" }}>
                 ✏️ Modifica questo evento
               </Link>
               <button type="button" onClick={() => setSelectedEvent(null)}>

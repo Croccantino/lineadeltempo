@@ -28,6 +28,9 @@ export default function EditTimelinePage() {
   const [ppy, setPpy] = useState<number>(10);
   const [firebaseConnected, setFirebaseConnected] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<string>("");
+  const [rangeFrom, setRangeFrom] = useState<number | "">("");
+  const [rangeTo, setRangeTo] = useState<number | "">("");
+  const [pendingEventId, setPendingEventId] = useState<string | null>(null);
 
   // Stato Modale Evento
   const [modalOpen, setModalOpen] = useState(false);
@@ -87,6 +90,26 @@ export default function EditTimelinePage() {
     return () => unsubscribe();
   }, []);
 
+  // Se si arriva dalla vista lettura con ?event=ID, apri subito quell'evento in modifica
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("event");
+    if (id) setPendingEventId(id);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingEventId) return;
+    const ev = events.find((e) => e.id === pendingEventId);
+    if (!ev) return;
+    setEditingEvent(ev);
+    setFormRow(ev.r);
+    setFormYear(ev.y);
+    setFormTitle(ev.t);
+    setFormNotes(ev.n || "");
+    setFormColor(ev.col);
+    setModalOpen(true);
+    setPendingEventId(null);
+  }, [events, pendingEventId]);
+
   // Salvataggio sincronizzato
   const persistChanges = async (newRows: TimelineRow[], newEvents: TimelineEvent[]) => {
     setRows(newRows);
@@ -108,11 +131,22 @@ export default function EditTimelinePage() {
     else dialogRef.current?.close();
   }, [modalOpen]);
 
-  // Calcolo intervalli
+  // Calcolo intervalli (dai dati completi)
   const years = events.map((e) => e.y).filter(Number.isFinite);
-  const minYear = years.length ? Math.min(...years) : 1550;
-  let maxYear = years.length ? Math.max(...years) : 1650;
+  const dataMin = years.length ? Math.min(...years) : 1550;
+  const dataMax = years.length ? Math.max(...years) : 1650;
+
+  // Intervallo scelto dall'utente (vuoto = tutti gli anni)
+  const rawFrom = rangeFrom === "" ? dataMin : rangeFrom;
+  const rawTo = rangeTo === "" ? dataMax : rangeTo;
+  const minYear = Math.min(rawFrom, rawTo);
+  let maxYear = Math.max(rawFrom, rawTo);
   if (minYear === maxYear) maxYear = minYear + 1;
+
+  // Eventi visibili nell'intervallo scelto
+  const visibleEvents = events.filter(
+    (e) => Number.isFinite(e.y) && e.y >= minYear && e.y <= maxYear
+  );
 
   const step = (p: number) => {
     for (const s of [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]) {
@@ -250,6 +284,37 @@ export default function EditTimelinePage() {
           </Link>
           <button onClick={() => openModalForNew()}>+ Evento</button>
           <button onClick={handleAddCountry}>+ Paese</button>
+
+          <div className="range-group" title="Mostra solo gli eventi compresi tra questi due anni">
+            <span className="range-label">Anni</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              aria-label="Anno iniziale"
+              placeholder={String(dataMin)}
+              value={rangeFrom}
+              onChange={(e) => setRangeFrom(e.target.value === "" ? "" : Number(e.target.value))}
+            />
+            <span className="range-sep">–</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              aria-label="Anno finale"
+              placeholder={String(dataMax)}
+              value={rangeTo}
+              onChange={(e) => setRangeTo(e.target.value === "" ? "" : Number(e.target.value))}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setRangeFrom("");
+                setRangeTo("");
+              }}
+            >
+              Tutti
+            </button>
+          </div>
+
           <button onClick={() => setPpy((p) => Math.max(1, p / 1.4))} aria-label="Riduci scala">−</button>
           <button onClick={() => setPpy((p) => Math.min(200, p * 1.4))} aria-label="Ingrandisci scala">+</button>
           <button onClick={handleFit}>Adatta</button>
@@ -293,7 +358,7 @@ export default function EditTimelinePage() {
 
           {/* Righe dei Paesi */}
           {rows.map((row) => {
-            const rowEvents = events
+            const rowEvents = visibleEvents
               .filter((e) => e.r === row.id && Number.isFinite(e.y))
               .sort((a, b) => a.y - b.y);
 

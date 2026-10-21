@@ -38,3 +38,9 @@ textarea{min-height:80px;resize:vertical}
 .swatches{display:flex;gap:10px;flex-wrap:wrap}
 .swatches label{margin:0;display:flex;align-items:center;gap:4px;color:var(--ink)}
 .swatches input{width:auto}
+.badge-client{display:inline-flex;align-items:center;background:#2563eb;color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:9999px}
+.badge-edit{display:inline-flex;align-items:center;background:#d97706;color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:9999px}
+.btn-edit-nav{display:inline-flex;align-items:center;background:#1d4ed8;color:#fff!important;text-decoration:none;font-weight:600;padding:6px 14px;border-radius:6px;border:1.5px solid #1e40af;min-height:38px}
+.btn-edit-nav:hover{background:#1e40af}
+.btn-back-nav{display:inline-flex;align-items:center;background:var(--card);color:var(--ink)!important;text-decoration:none;font-weight:600;padding:6px 14px;border-radius:6px;border:1.5px solid var(--ink);min-height:38px}
+.btn-back-nav:hover{background:var(--grid)}
