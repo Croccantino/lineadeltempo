@@ -15,16 +15,18 @@ body {
 <body>
 <div id="app">
 <header>
+<div>
 <h1>Guerre di religione in Europa</h1>
+<div style="display:flex;gap:8px;margin-top:4px"><span class="badge-client">📖 Vista Client (Lettura)</span></div>
+</div>
 <div class="bar">
-<button id="addEv">+ Evento</button>
 <button id="zo" aria-label="Riduci la scala">−</button>
 <button id="zi" aria-label="Ingrandisci la scala">+</button>
 <button id="fit">Adatta</button>
-<button id="addRow">+ Paese</button>
+<a href="modifica.html" class="btn-edit-nav">✏️ Modifica</a>
 </div>
 </header>
-<p class="hint">Gli eventi si dispongono in base all’anno. Tocca uno spazio vuoto di una riga per aggiungere un evento in quel punto.</p>
+<p class="hint">💡 <strong>Modalità Lettura</strong>: Consulta gli eventi storici. Usa il pulsante <strong>Modifica</strong> nella barra per aggiungere o modificare eventi.</p>
 <div class="wrap"><div class="tl" id="tl"></div></div>
 </div>
 
