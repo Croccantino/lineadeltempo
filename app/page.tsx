@@ -100,7 +100,7 @@ export default function ClientTimelinePage() {
       <header>
         <div>
           <h1>Guerre di religione in Europa</h1>
-          <div className="header-badges" style={{ display: "flex", gap: "8px", marginTop: "4px", alignItems: "center" }}>
+          <div className="header-badges">
             <span className="badge-client">📖 Vista Client (Lettura)</span>
             {firebaseConnected ? (
               <span className="badge-firebase">🟢 Cloud Firebase Sincronizzato</span>
@@ -165,7 +165,7 @@ export default function ClientTimelinePage() {
                     return (
                       <button
                         key={ev.id}
-                        className={`chip c-${ev.col}${end > ev.y ? " period" : ""}`}
+                        className={`chip c-${ev.col}`}
                         style={{ left: `${x}px`, top: `${6 + lane * LH}px`, width: `${barWidth}px` }}
                         onClick={() => setSelectedEventId(ev.id)}
                       >

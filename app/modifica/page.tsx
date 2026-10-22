@@ -335,7 +335,7 @@ export default function EditTimelinePage() {
       <header>
         <div>
           <h1>Gestione Linea del Tempo</h1>
-          <div className="header-badges" style={{ display: "flex", gap: "8px", marginTop: "4px", alignItems: "center" }}>
+          <div className="header-badges">
             <span className="badge-edit">✏️ Modalità Modifica</span>
             {saveStatus && <span className="save-status">{saveStatus}</span>}
           </div>
@@ -425,7 +425,7 @@ export default function EditTimelinePage() {
                     return (
                       <button
                         key={ev.id}
-                        className={`chip c-${ev.col}${end > ev.y ? " period" : ""}`}
+                        className={`chip c-${ev.col}`}
                         style={{
                           left: `${x}px`,
                           top: `${6 + lane * LH}px`,
