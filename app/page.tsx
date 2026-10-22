@@ -123,7 +123,7 @@ export default function ClientTimelinePage() {
       <header>
         <div>
           <h1>Guerre di religione in Europa</h1>
-          <div style={{ display: "flex", gap: "8px", marginTop: "4px", alignItems: "center" }}>
+          <div className="header-badges" style={{ display: "flex", gap: "8px", marginTop: "4px", alignItems: "center" }}>
             <span className="badge-client">📖 Vista Client (Lettura)</span>
             {firebaseConnected ? (
               <span className="badge-firebase">🟢 Cloud Firebase Sincronizzato</span>

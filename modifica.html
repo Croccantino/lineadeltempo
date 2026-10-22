@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Modifica – Linea del tempo</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 <style>
 body { background-image: none !important; }
 </style>
@@ -15,10 +15,14 @@ body { background-image: none !important; }
 <header>
 <div>
 <h1>Gestione Linea del Tempo</h1>
-<div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+<div class="header-badges" style="display:flex;gap:8px;margin-top:4px;align-items:center">
 <span class="badge-edit">✏️ Modalità Modifica</span>
 </div>
 </div>
+</header>
+<p class="hint">💡 <strong>Istruzioni Modifica</strong>: Clicca su uno spazio vuoto di una riga per inserire un evento in quel punto. Clicca su un evento per modificarlo o eliminarlo. Clicca sul nome di un paese per rinominarlo. I dati si salvano nel browser (localStorage).</p>
+<div class="wrap"><div class="tl" id="tl"></div></div>
+<div class="actions">
 <div class="bar">
 <a href="index.html" class="btn-back-nav">← Torna alla Vista Client</a>
 <button id="addEv">+ Evento</button>
@@ -27,9 +31,7 @@ body { background-image: none !important; }
 <button id="zi" aria-label="Ingrandisci la scala">+</button>
 <button id="fit">Adatta</button>
 </div>
-</header>
-<p class="hint">💡 <strong>Istruzioni Modifica</strong>: Clicca su uno spazio vuoto di una riga per inserire un evento in quel punto. Clicca su un evento per modificarlo o eliminarlo. Clicca sul nome di un paese per rinominarlo. I dati si salvano nel browser (localStorage).</p>
-<div class="wrap"><div class="tl" id="tl"></div></div>
+</div>
 </div>
 
 <dialog id="dlg">

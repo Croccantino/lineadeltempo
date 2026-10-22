@@ -927,6 +927,15 @@ textarea {
   justify-content: center;
 }
 
+.header-badges {
+  justify-content: center;
+}
+
+header {
+  justify-content: center;
+  text-align: center;
+}
+
 .lab-title {
   width: 100%;
   text-align: center;

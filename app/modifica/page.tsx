@@ -321,55 +321,10 @@ export default function EditTimelinePage() {
       <header>
         <div>
           <h1>Gestione Linea del Tempo</h1>
-          <div style={{ display: "flex", gap: "8px", marginTop: "4px", alignItems: "center" }}>
+          <div className="header-badges" style={{ display: "flex", gap: "8px", marginTop: "4px", alignItems: "center" }}>
             <span className="badge-edit">✏️ Modalità Modifica</span>
             {saveStatus && <span className="save-status">{saveStatus}</span>}
           </div>
-        </div>
-
-        <div className="bar">
-          <Link href="/" className="btn-back-nav">
-            ← Torna alla Vista Client
-          </Link>
-          <button onClick={() => openModalForNew()}>+ Evento</button>
-          <button onClick={handleAddCountry}>+ Paese</button>
-
-          <div className="range-group" title="Mostra solo gli eventi compresi tra questi due anni">
-            <span className="range-label">Anni</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              aria-label="Anno iniziale"
-              placeholder={String(dataMin)}
-              value={rangeFrom}
-              onChange={(e) => setRangeFrom(e.target.value === "" ? "" : Number(e.target.value))}
-            />
-            <span className="range-sep">–</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              aria-label="Anno finale"
-              placeholder={String(dataMax)}
-              value={rangeTo}
-              onChange={(e) => setRangeTo(e.target.value === "" ? "" : Number(e.target.value))}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                setRangeFrom("");
-                setRangeTo("");
-              }}
-            >
-              Tutti
-            </button>
-          </div>
-
-          <button onClick={() => setPpy((p) => Math.max(1, p / 1.4))} aria-label="Riduci scala">−</button>
-          <button onClick={() => setPpy((p) => Math.min(200, p * 1.4))} aria-label="Ingrandisci scala">+</button>
-          <button onClick={handleFit}>Adatta</button>
-          <button onClick={() => setConfigOpen(true)} className="btn-cfg">
-            ⚙️ Database Firebase
-          </button>
         </div>
       </header>
 
@@ -471,6 +426,53 @@ export default function EditTimelinePage() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      <div className="actions">
+        <div className="bar">
+          <Link href="/" className="btn-back-nav">
+            ← Torna alla Vista Client
+          </Link>
+          <button onClick={() => openModalForNew()}>+ Evento</button>
+          <button onClick={handleAddCountry}>+ Paese</button>
+
+          <div className="range-group" title="Mostra solo gli eventi compresi tra questi due anni">
+            <span className="range-label">Anni</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              aria-label="Anno iniziale"
+              placeholder={String(dataMin)}
+              value={rangeFrom}
+              onChange={(e) => setRangeFrom(e.target.value === "" ? "" : Number(e.target.value))}
+            />
+            <span className="range-sep">–</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              aria-label="Anno finale"
+              placeholder={String(dataMax)}
+              value={rangeTo}
+              onChange={(e) => setRangeTo(e.target.value === "" ? "" : Number(e.target.value))}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setRangeFrom("");
+                setRangeTo("");
+              }}
+            >
+              Tutti
+            </button>
+          </div>
+
+          <button onClick={() => setPpy((p) => Math.max(1, p / 1.4))} aria-label="Riduci scala">−</button>
+          <button onClick={() => setPpy((p) => Math.min(200, p * 1.4))} aria-label="Ingrandisci scala">+</button>
+          <button onClick={handleFit}>Adatta</button>
+          <button onClick={() => setConfigOpen(true)} className="btn-cfg">
+            ⚙️ Database Firebase
+          </button>
         </div>
       </div>
 

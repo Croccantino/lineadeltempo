@@ -82,4 +82,6 @@ textarea{min-height:80px;resize:vertical}
 
 .actions{display:flex;justify-content:center;padding:0 16px 30px}
 .actions .bar{justify-content:center}
+.header-badges{justify-content:center}
+header{justify-content:center;text-align:center}
 .lab button{text-align:center}
