@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start",
     "typecheck": "tsc --noEmit",
-    "sync-images": "node scripts/sync-images.mjs --apply"
+    "sync-images": "node scripts/sync-images.mjs --apply",
+    "preview": "npx --yes serve out"
   },
   "keywords": [],
   "author": "",

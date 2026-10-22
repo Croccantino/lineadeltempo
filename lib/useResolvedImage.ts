@@ -5,6 +5,8 @@ import { get, ref } from "firebase/database";
 import { getDbInstance } from "./firebase";
 import { getRtdbImageId, isRtdbImageUrl, sanitizeImageUrl } from "./media";
 
+const BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
+
 export function useResolvedImage(value?: string): { src: string } {
   const [src, setSrc] = useState("");
 
@@ -18,7 +20,7 @@ export function useResolvedImage(value?: string): { src: string } {
     }
 
     if (!isRtdbImageUrl(image)) {
-      setSrc(image);
+      setSrc(image.startsWith("/images/") ? `${BASE_PATH}${image}` : image);
       return;
     }
 

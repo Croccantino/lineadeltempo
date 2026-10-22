@@ -3,7 +3,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { INITIAL_DATA, TimelineRow, TimelineEvent } from "../../lib/initialData";
-import { syncToFirebase, subscribeToFirebase, isFirebaseActive } from "../../lib/firebase";
+import {
+  syncToFirebase,
+  subscribeToFirebase,
+  isFirebaseActive,
+  saveImageToFirebase,
+} from "../../lib/firebase";
 import {
   prepareImageFile,
   sanitizeImageUrl,
@@ -191,23 +196,7 @@ export default function EditTimelinePage() {
     setModalOpen(true);
   };
 
-  const uploadImage = async (blob: Blob): Promise<string> => {
-    const form = new FormData();
-    const subtype = blob.type.split("/")[1] || "jpg";
-    const extension = subtype === "jpeg" ? "jpg" : subtype;
-    form.append("file", blob, `immagine.${extension}`);
 
-    const response = await fetch("/api/upload", { method: "POST", body: form });
-    const payload = (await response.json().catch(() => ({}))) as {
-      id?: string;
-      error?: string;
-    };
-
-    if (!response.ok || !payload.id) {
-      throw new Error(payload.error || "Caricamento immagine non riuscito.");
-    }
-    return payload.id;
-  };
 
   const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -233,13 +222,13 @@ export default function EditTimelinePage() {
     let imgValue = formImg;
     try {
       if (pendingImage) {
-        const id = await uploadImage(pendingImage.blob);
+        const id = await saveImageToFirebase(pendingImage.blob);
         imgValue = `rtdb:${id}`;
         clearPendingImage();
         setFormImg(imgValue);
       } else if (formImg.startsWith("data:")) {
         const blob = await (await fetch(formImg)).blob();
-        const id = await uploadImage(blob);
+        const id = await saveImageToFirebase(blob);
         imgValue = `rtdb:${id}`;
         setFormImg(imgValue);
       }

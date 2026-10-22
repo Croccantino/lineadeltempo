@@ -43,6 +43,30 @@ export const getDbInstance = () => {
 
 const DB_PATH = "timeline/main";
 
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Lettura dell'immagine non riuscita."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function saveImageToFirebase(blob: Blob): Promise<string> {
+  const db = getDbInstance();
+  if (!db) throw new Error("Firebase non configurato. Controlla le variabili d'ambiente.");
+
+  const id = crypto.randomUUID();
+  const data = await blobToDataUrl(blob);
+  await set(ref(db, `images/${id}`), {
+    data,
+    type: blob.type || "image/webp",
+    size: blob.size,
+    createdAt: Date.now(),
+  });
+  return id;
+}
+
 export async function syncToFirebase(
   rows: TimelineRow[],
   events: TimelineEvent[]

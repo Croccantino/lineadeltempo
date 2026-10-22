@@ -1,9 +1,12 @@
 Linea del tempo - Guerre di religione in Europa
 ================================================
 
-Applicazione Next.js pubblicata su Vercel. I dati della linea del tempo sono
-in Firebase Realtime Database; le immagini caricate dall'editor vengono poi
-copiate automaticamente nel repository pubblico.
+Applicazione Next.js esportata staticamente e pubblicata su GitHub Pages:
+https://croccantino.github.io/lineadeltempo/
+
+I dati della linea del tempo sono in Firebase Realtime Database; le immagini
+caricate dall'editor vengono scritte in RTDB e poi copiate automaticamente nel
+repository pubblico.
 
 SVILUPPO LOCALE
 ---------------
@@ -15,27 +18,37 @@ npm run dev
 Apri http://localhost:3000 per la linea del tempo e
 http://localhost:3000/modifica per l'editor.
 
+BUILD STATICO
+-------------
+npm run build
+
+L'output viene creato in out/. In locale il basePath è vuoto.
+Per simulare GitHub Pages:
+NEXT_PUBLIC_BASE_PATH=/lineadeltempo npm run build
+
 VARIABILI D'AMBIENTE
 --------------------
-NEXT_PUBLIC_FIREBASE_*  configurazione web Firebase (usata dal browser)
-FIREBASE_DATABASE_URL   URL RTDB usato dall'API di upload lato server
-                        (se assente usa NEXT_PUBLIC_FIREBASE_DATABASE_URL)
+NEXT_PUBLIC_FIREBASE_*  configurazione web Firebase (incorporata nel build)
+NEXT_PUBLIC_BASE_PATH   /lineadeltempo per GitHub Pages, vuoto in locale
+FIREBASE_DATABASE_URL   URL RTDB per lo script di sincronizzazione
 
-Su Vercel vanno impostate le stesse variabili del file .env.local.
+La workflow Pages legge le variabili NEXT_PUBLIC_FIREBASE_* dalle Repository
+variables di GitHub. Il secret FIREBASE_DATABASE_URL è usato dalla workflow di
+sincronizzazione immagini.
 
 DATI
 ----
 timeline/main   righe, eventi e updatedAt
 images/<uuid>   { data: "data:image/...;base64,...", type, size, createdAt }
 
-L'editor salva prima l'evento con img = "rtdb:<uuid>", poi la GitHub Action
-converte l'immagine in WebP e aggiorna l'evento a img = "/images/<hash>.webp".
+L'editor salva l'evento con img = "rtdb:<uuid>". La GitHub Action converte
+l'immagine in WebP e aggiorna l'evento a img = "/images/<hash>.webp".
 
 UPLOAD
 ------
-L'editor comprime l'immagine nel browser (max 2 MB) e la invia a
-POST /api/upload. L'API scrive il file base64 nel nodo images/<uuid> di RTDB.
-Non viene usato Firebase Storage.
+L'editor comprime l'immagine nel browser (max 2 MB) e la scrive direttamente
+nel nodo images/<uuid> di RTDB tramite Firebase SDK. Non ci sono API server né
+Firebase Storage.
 
 SINCRONIZZAZIONE AUTOMATICA
 ---------------------------
@@ -56,6 +69,15 @@ se si usa l'URL predefinito nello script).
 Per provare la sincronizzazione in locale:
 npm run sync-images
 
+DEPLOY GITHUB PAGES
+-------------------
+La workflow .github/workflows/deploy-pages.yml compila l'app e pubblica out/ a
+ogni push su main. In Settings -> Pages -> Build and deployment -> Source va
+selezionato "GitHub Actions".
+
+Il basePath /lineadeltempo è impostato nella workflow. I percorsi delle immagini
+locali vengono prefissati a runtime con lo stesso basePath.
+
 REGOLE FIREBASE
 ---------------
 database.rules.json è attualmente aperto in lettura e scrittura su timeline/main
@@ -67,14 +89,14 @@ style.css) non sono più usati.
 
 LIMITI
 ------
-- Vercel Hobby accetta richieste fino a 4,5 MB; il limite applicativo è 2 MB.
+- Limite applicativo immagini: 2 MB.
 - RTDB free: 1 GB di spazio e 10 GB/mese di download.
-- Dopo il push della Action, Vercel deve completare il deploy: per pochi istanti
+- Dopo il push della Action, Pages deve completare il deploy: per pochi istanti
   il nuovo /images/<hash>.webp può restituire 404.
 - GitHub disattiva le workflow programmate dopo 60 giorni senza attività del
   repository: se succede, riattivale dalla pagina Actions.
 
 COMMIT
 ------
-La workflow crea commit automatici con prefisso
+Le workflow creano commit automatici con prefisso
 "chore(images): sincronizza immagini da Firebase".
