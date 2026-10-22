@@ -915,3 +915,24 @@ textarea {
     transform: none;
   }
 }
+
+/* Barra azioni sotto la tabella */
+.actions {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 30px;
+}
+
+.actions .bar {
+  justify-content: center;
+}
+
+.lab-title {
+  width: 100%;
+  text-align: center;
+}
+
+.lab-btn {
+  justify-content: center;
+  text-align: center;
+}
