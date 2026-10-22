@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { TimelineRow, TimelineEvent, TimelineData } from "./api/eventi/route";
 import { INITIAL_DATA } from "../lib/initialData";
 import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
+import { sanitizeImageUrl, sanitizeLink } from "../lib/media";
 
 const STORAGE_KEY = "timeline-proporzionale-nextjs-v1";
 const W = 140;
@@ -18,6 +19,19 @@ export default function ClientTimelinePage() {
   const [firebaseConnected, setFirebaseConnected] = useState<boolean>(false);
   const [rangeFrom, setRangeFrom] = useState<number | "">("");
   const [rangeTo, setRangeTo] = useState<number | "">("");
+  const [photoZoom, setPhotoZoom] = useState(false);
+  const infoDialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = infoDialogRef.current;
+    if (!dialog) return;
+    if (selectedEvent && !dialog.open) dialog.showModal();
+    if (!selectedEvent && dialog.open) dialog.close();
+  }, [selectedEvent]);
+
+  useEffect(() => {
+    setPhotoZoom(false);
+  }, [selectedEvent]);
 
   // Inizializzazione: ascolto Realtime Firebase o fallback localStorage / API
   useEffect(() => {
@@ -100,6 +114,8 @@ export default function ClientTimelinePage() {
   }
 
   const selectedCountryName = rows.find((r) => r.id === selectedEvent?.r)?.name || "";
+  const selectedImg = selectedEvent ? sanitizeImageUrl(selectedEvent.img || "") : "";
+  const selectedLink = selectedEvent ? sanitizeLink(selectedEvent.link || "") : "";
 
   return (
     <div id="app">
@@ -223,35 +239,73 @@ export default function ClientTimelinePage() {
         </div>
       </div>
 
-      {/* Scheda Informativa Evento (Modalità Lettura) */}
+      {/* Scheda evento stile nota (modalità lettura) */}
       {selectedEvent && (
         <dialog
-          open
-          className="info-dialog"
+          ref={infoDialogRef}
+          className="note-dialog"
+          onClose={() => setSelectedEvent(null)}
           onClick={(e) => {
             if (e.target === e.currentTarget) setSelectedEvent(null);
           }}
         >
-          <div className="dialog-content">
-            <div className="dialog-header">
-              <span className={`event-badge c-${selectedEvent.col}`}>{selectedEvent.y}</span>
-              <h2 style={{ margin: "6px 0 2px", fontSize: "20px", fontWeight: "700" }}>{selectedEvent.t}</h2>
-              <p style={{ color: "var(--muted)", margin: 0, fontSize: "14px" }}>Paese: {selectedCountryName}</p>
+          <article className={`note c-${selectedEvent.col}`}>
+            <span className="note-tape" aria-hidden="true" />
+
+            <div className="note-head">
+              <span className="note-year">{selectedEvent.y}</span>
+              <h2 className="note-title">{selectedEvent.t}</h2>
+              <p className="note-country">Paese: {selectedCountryName}</p>
             </div>
 
-            <div className="dialog-body">
-              <label style={{ fontWeight: "600", color: "var(--ink)" }}>Appunti e note storiche:</label>
-              <div className="notes-box">
+            <div className="note-body">
+              <p className="note-notes">
                 {selectedEvent.n ? selectedEvent.n : "Nessun appunto registrato per questo evento."}
-              </div>
+              </p>
+
+              {selectedImg && (
+                <button
+                  type="button"
+                  className={`note-photo${photoZoom ? " zoomed" : ""}`}
+                  data-zoom={selectedImg.startsWith("data:") ? "1" : undefined}
+                  aria-label={selectedImg.startsWith("data:") ? "Ingrandisci o riduci la foto" : "Apri la foto in una nuova scheda"}
+                  onClick={() => {
+                    if (selectedImg.startsWith("data:")) {
+                      setPhotoZoom((value) => !value);
+                    } else {
+                      window.open(selectedImg, "_blank", "noopener,noreferrer");
+                    }
+                  }}
+                >
+                  <img
+                    src={selectedImg}
+                    alt={selectedEvent.t}
+                    onError={(e) => {
+                      const wrap = e.currentTarget.closest(".note-photo");
+                      if (wrap instanceof HTMLElement) wrap.style.display = "none";
+                    }}
+                  />
+                </button>
+              )}
+
+              {selectedLink && (
+                <a
+                  className="note-link"
+                  href={selectedLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Apri link ↗
+                </a>
+              )}
             </div>
 
-            <div className="dialog-footer">
+            <footer className="note-foot">
               <button type="button" onClick={() => setSelectedEvent(null)}>
                 Chiudi
               </button>
-            </div>
-          </div>
+            </footer>
+          </article>
         </dialog>
       )}
     </div>

@@ -10,6 +10,8 @@ export interface TimelineEvent {
   t: string; // title
   n: string; // notes
   col: "blue" | "green" | "red" | "yellow";
+  img?: string; // photo URL or data URL (base64)
+  link?: string; // external reference link
 }
 
 export interface TimelineData {

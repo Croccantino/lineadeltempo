@@ -10,6 +10,7 @@ import {
   isFirebaseActive,
   getFirebaseConfig,
 } from "../../lib/firebase";
+import { resizeImageFile, sanitizeImageUrl, sanitizeLink } from "../../lib/media";
 
 const STORAGE_KEY = "timeline-proporzionale-nextjs-v1";
 const W = 140;
@@ -41,6 +42,9 @@ export default function EditTimelinePage() {
   const [formTitle, setFormTitle] = useState("");
   const [formNotes, setFormNotes] = useState("");
   const [formColor, setFormColor] = useState<"blue" | "green" | "red" | "yellow">("blue");
+  const [formImg, setFormImg] = useState("");
+  const [formLink, setFormLink] = useState("");
+  const [imgError, setImgError] = useState("");
 
   // Stato Modale Configurazione Firebase
   const [configOpen, setConfigOpen] = useState(false);
@@ -114,6 +118,9 @@ export default function EditTimelinePage() {
     setFormTitle(ev.t);
     setFormNotes(ev.n || "");
     setFormColor(ev.col);
+    setFormImg(ev.img || "");
+    setFormLink(ev.link || "");
+    setImgError("");
     setModalOpen(true);
     setPendingEventId(null);
   }, [events, pendingEventId]);
@@ -179,6 +186,9 @@ export default function EditTimelinePage() {
     setFormTitle("");
     setFormNotes("");
     setFormColor("blue");
+    setFormImg("");
+    setFormLink("");
+    setImgError("");
     setModalOpen(true);
   };
 
@@ -189,7 +199,22 @@ export default function EditTimelinePage() {
     setFormTitle(ev.t);
     setFormNotes(ev.n || "");
     setFormColor(ev.col);
+    setFormImg(ev.img || "");
+    setFormLink(ev.link || "");
+    setImgError("");
     setModalOpen(true);
+  };
+
+  const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImgError("");
+    try {
+      const dataUrl = await resizeImageFile(file);
+      setFormImg(dataUrl);
+    } catch (err) {
+      setImgError(err instanceof Error ? err.message : "Caricamento immagine non riuscito.");
+    }
   };
 
   const handleSaveEvent = async (e: React.FormEvent) => {
@@ -197,11 +222,26 @@ export default function EditTimelinePage() {
     const yNum = parseInt(String(formYear), 10);
     if (isNaN(yNum) || !formTitle.trim()) return;
 
+    const img = sanitizeImageUrl(formImg);
+    const link = sanitizeLink(formLink);
+    const media = {
+      ...(img ? { img } : {}),
+      ...(link ? { link } : {}),
+    };
+
     let updated: TimelineEvent[];
     if (editingEvent) {
       updated = events.map((item) =>
         item.id === editingEvent.id
-          ? { ...item, r: formRow, y: yNum, t: formTitle.trim(), n: formNotes.trim(), col: formColor }
+          ? {
+              ...item,
+              r: formRow,
+              y: yNum,
+              t: formTitle.trim(),
+              n: formNotes.trim(),
+              col: formColor,
+              ...media,
+            }
           : item
       );
     } else {
@@ -212,6 +252,7 @@ export default function EditTimelinePage() {
         t: formTitle.trim(),
         n: formNotes.trim(),
         col: formColor,
+        ...media,
       };
       updated = [...events, newEv];
     }
@@ -476,6 +517,38 @@ export default function EditTimelinePage() {
             placeholder="Cause, protagonisti, conseguenze..."
             value={formNotes}
             onChange={(e) => setFormNotes(e.target.value)}
+          />
+
+          <label htmlFor="imgFile">Immagine (carica un file)</label>
+          <input id="imgFile" type="file" accept="image/*" onChange={handleImageFile} />
+          <input
+            type="text"
+            inputMode="url"
+            placeholder="…oppure incolla l'URL di un'immagine (https://)"
+            value={formImg.startsWith("data:") ? "" : formImg}
+            onChange={(e) => setFormImg(e.target.value)}
+          />
+          <p className="img-hint">
+            Le immagini vengono compresse automaticamente (max ~600 KB). In alternativa incolla un URL.
+          </p>
+          {imgError && <p className="img-error">{imgError}</p>}
+          {formImg && (
+            <div className="img-preview">
+              <img src={formImg} alt="Anteprima immagine" />
+              <button type="button" onClick={() => setFormImg("")}>
+                Rimuovi immagine
+              </button>
+            </div>
+          )}
+
+          <label htmlFor="lnk">Link di approfondimento</label>
+          <input
+            id="lnk"
+            type="text"
+            inputMode="url"
+            placeholder="https://…"
+            value={formLink}
+            onChange={(e) => setFormLink(e.target.value)}
           />
 
           <label>Colore evidenziatore</label>

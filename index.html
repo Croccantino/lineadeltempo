@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Linea del tempo – Guerre di religione in Europa</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
 <style>
 body {
   background-image: none !important;
@@ -46,6 +46,23 @@ body {
 </form>
 </dialog>
 
-<script src="app.js?v=4"></script>
+<dialog id="infoDlg" class="note-dialog">
+<article class="note" id="iNote">
+<span class="note-tape" aria-hidden="true"></span>
+<div class="note-head">
+<span class="note-year" id="iY"></span>
+<h2 class="note-title" id="iT"></h2>
+<p class="note-country" id="iP"></p>
+</div>
+<div class="note-body">
+<p class="note-notes" id="iN"></p>
+<a class="note-photo" id="iPhotoLink" target="_blank" rel="noopener noreferrer" hidden><img id="iPhoto" alt=""></a>
+<a class="note-link" id="iLink" target="_blank" rel="noopener noreferrer" hidden>Apri link ↗</a>
+</div>
+<footer class="note-foot"><button type="button" id="iClose">Chiudi</button></footer>
+</article>
+</dialog>
+
+<script src="app.js?v=5"></script>
 </body>
 </html>

@@ -689,3 +689,229 @@ textarea {
     padding: 0 14px;
   }
 }
+
+/* ── Scheda evento stile nota ───────────────────────────── */
+.note-dialog {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  width: min(560px, calc(100vw - 24px));
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.note-dialog::backdrop {
+  background: rgba(20, 28, 44, 0.42);
+  backdrop-filter: blur(3px);
+}
+
+.note {
+  --note-ink: #232a3a;
+  --note-muted: #5d6980;
+  position: relative;
+  background-color: #fdfbf2;
+  background-image:
+    linear-gradient(transparent 0 27px, rgba(92, 132, 190, 0.16) 27px 28px),
+    linear-gradient(90deg, transparent 0 27px, rgba(92, 132, 190, 0.12) 27px 28px);
+  background-size: 28px 28px;
+  color: var(--note-ink);
+  border: 1.5px solid rgba(35, 42, 58, 0.5);
+  border-radius: 6px 12px 8px 14px;
+  box-shadow: 0 20px 44px rgba(16, 24, 40, 0.3);
+  padding: 32px 26px 18px;
+  transform: rotate(-1deg);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+}
+
+.note-tape {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  width: 118px;
+  height: 26px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgba(240, 220, 120, 0.55);
+  border: 1px solid rgba(176, 154, 56, 0.35);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+.note-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+
+.note-year {
+  align-self: flex-start;
+  font: 700 20px/1 var(--font-caveat), "Caveat", cursive;
+  padding: 1px 12px 2px;
+  border: 2px solid var(--note-ink);
+  border-radius: 999px;
+  transform: rotate(-2.5deg);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.note-title {
+  margin: 8px 0 0;
+  font: 700 32px/1.05 var(--font-caveat), "Caveat", cursive;
+  letter-spacing: 0.2px;
+}
+
+.note-country {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--note-muted);
+}
+
+.note-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.note-notes {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  line-height: 1.65;
+  font-size: 15px;
+  background: color-mix(in srgb, var(--yellow) 42%, transparent);
+}
+
+.note.c-blue .note-notes { background: color-mix(in srgb, var(--blue) 42%, transparent); }
+.note.c-green .note-notes { background: color-mix(in srgb, var(--green) 42%, transparent); }
+.note.c-red .note-notes { background: color-mix(in srgb, var(--red) 42%, transparent); }
+.note.c-yellow .note-notes { background: color-mix(in srgb, var(--yellow) 46%, transparent); }
+
+.note-photo {
+  display: block;
+  margin-top: 16px;
+  padding: 6px 6px 10px;
+  background: #fff;
+  border: 1px solid rgba(35, 42, 58, 0.35);
+  box-shadow: 0 5px 12px rgba(16, 24, 40, 0.16);
+  transform: rotate(-1.4deg);
+  max-width: 100%;
+  width: max-content;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.note-photo:hover {
+  background: #fff;
+  transform: rotate(-1.4deg);
+  box-shadow: 0 5px 12px rgba(16, 24, 40, 0.16);
+}
+
+.note-photo[data-zoom] {
+  cursor: zoom-in;
+}
+
+.note-photo.zoomed {
+  cursor: zoom-out;
+}
+
+.note-photo.zoomed img {
+  max-height: 70vh;
+}
+
+.note-photo img {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+}
+
+.note-photo[hidden],
+.note-link[hidden] {
+  display: none;
+}
+
+.note-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-weight: 700;
+  color: var(--note-ink);
+  text-decoration: underline wavy;
+  text-underline-offset: 4px;
+}
+
+.note-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.note-foot button {
+  border: 1.5px solid var(--note-ink);
+  background: transparent;
+  color: var(--note-ink);
+  border-radius: 4px 9px 5px 8px;
+  font: 600 16px var(--font-caveat), "Caveat", cursive;
+  padding: 4px 16px;
+  min-height: 34px;
+  box-shadow: none;
+}
+
+.note-foot button:hover {
+  background: rgba(35, 42, 58, 0.08);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Campi immagine/link nell'editor ────────────────────── */
+.img-preview {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+}
+
+.img-preview img {
+  max-width: 190px;
+  max-height: 130px;
+  padding: 3px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.img-preview button {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.img-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.img-error {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #c23b3b;
+}
+
+@media (max-width: 640px) {
+  .note {
+    padding: 26px 16px 14px;
+    transform: none;
+  }
+  .note-title {
+    font-size: 27px;
+  }
+  .note-photo {
+    transform: none;
+  }
+}
