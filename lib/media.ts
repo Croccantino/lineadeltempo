@@ -4,7 +4,7 @@ const DATA_IMAGE_RE = /^data:image\/(png|jpe?g|webp|gif|avif);base64,/i;
 const LOCAL_IMAGE_RE = /^\/images\/[A-Za-z0-9._-]+\.(webp|jpe?g|png|gif|avif)$/i;
 const RTDB_IMAGE_RE = /^rtdb:[A-Za-z0-9-]+$/;
 
-export function isDataImageUrl(value: string): boolean {
+function isDataImageUrl(value: string): boolean {
   return DATA_IMAGE_RE.test(value.trim());
 }
 
