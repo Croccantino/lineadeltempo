@@ -2,17 +2,16 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { TimelineRow, TimelineEvent, TimelineData } from "../api/eventi/route";
-import { INITIAL_DATA } from "../../lib/initialData";
+import { INITIAL_DATA, TimelineRow, TimelineEvent } from "../../lib/initialData";
+import { syncToFirebase, subscribeToFirebase, isFirebaseActive } from "../../lib/firebase";
 import {
-  syncToFirebase,
-  subscribeToFirebase,
-  isFirebaseActive,
-  getFirebaseConfig,
-} from "../../lib/firebase";
-import { resizeImageFile, sanitizeImageUrl, sanitizeLink } from "../../lib/media";
+  prepareImageFile,
+  sanitizeImageUrl,
+  sanitizeLink,
+  isRtdbImageUrl,
+} from "../../lib/media";
+import { useResolvedImage } from "../../lib/useResolvedImage";
 
-const STORAGE_KEY = "timeline-proporzionale-nextjs-v1";
 const W = 140;
 const LH = 54;
 const PAD = 14;
@@ -39,65 +38,37 @@ export default function EditTimelinePage() {
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
   const [formRow, setFormRow] = useState("");
   const [formYear, setFormYear] = useState<number | string>("");
+  const [formYearEnd, setFormYearEnd] = useState<number | string>("");
   const [formTitle, setFormTitle] = useState("");
   const [formNotes, setFormNotes] = useState("");
   const [formColor, setFormColor] = useState<"blue" | "green" | "red" | "yellow">("blue");
   const [formImg, setFormImg] = useState("");
   const [formLink, setFormLink] = useState("");
   const [imgError, setImgError] = useState("");
+  const [pendingImage, setPendingImage] = useState<{ blob: Blob; previewUrl: string } | null>(null);
 
-  // Stato Modale Configurazione Firebase
-  const [configOpen, setConfigOpen] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  const [projectId, setProjectId] = useState("");
-  const [authDomain, setAuthDomain] = useState("");
-  const [appId, setAppId] = useState("");
+  const { src: resolvedFormImg } = useResolvedImage(formImg);
+  const previewSrc = pendingImage?.previewUrl || resolvedFormImg;
 
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  useEffect(() => {
+    return () => {
+      if (pendingImage) URL.revokeObjectURL(pendingImage.previewUrl);
+    };
+  }, [pendingImage]);
+
+  const clearPendingImage = () => setPendingImage(null);
+
   // Inizializzazione
   useEffect(() => {
-    const active = isFirebaseActive();
-    setFirebaseConnected(active);
-
-    const currentConf = getFirebaseConfig();
-    setApiKey(currentConf.apiKey || "");
-    setProjectId(currentConf.projectId || "");
-    setAuthDomain(currentConf.authDomain || "");
-    setAppId(currentConf.appId || "");
+    setFirebaseConnected(isFirebaseActive());
 
     const unsubscribe = subscribeToFirebase((data) => {
       setRows(data.rows);
       setEvents(data.events);
       setFirebaseConnected(true);
     });
-
-    // Carica da localStorage se valido, altrimenti dall'API (dati iniziali come fallback)
-    let usedStorage = false;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.rows) && parsed.rows.length > 0 && Array.isArray(parsed.events)) {
-          setRows(parsed.rows);
-          setEvents(parsed.events);
-          if (parsed.ppy) setPpy(parsed.ppy);
-          usedStorage = true;
-        }
-      } catch (e) {}
-    }
-
-    if (!usedStorage) {
-      fetch("/api/eventi")
-        .then((res) => res.json())
-        .then((data: TimelineData) => {
-          if (Array.isArray(data.rows) && data.rows.length > 0) {
-            setRows(data.rows);
-            setEvents(data.events);
-          }
-        })
-        .catch(() => {});
-    }
 
     return () => unsubscribe();
   }, []);
@@ -112,9 +83,11 @@ export default function EditTimelinePage() {
     if (!pendingEventId) return;
     const ev = events.find((e) => e.id === pendingEventId);
     if (!ev) return;
+    clearPendingImage();
     setEditingEvent(ev);
     setFormRow(ev.r);
     setFormYear(ev.y);
+    setFormYearEnd(ev.y2 ?? "");
     setFormTitle(ev.t);
     setFormNotes(ev.n || "");
     setFormColor(ev.col);
@@ -129,16 +102,16 @@ export default function EditTimelinePage() {
   const persistChanges = async (newRows: TimelineRow[], newEvents: TimelineEvent[]) => {
     setRows(newRows);
     setEvents(newEvents);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ rows: newRows, events: newEvents, ppy }));
 
     setSaveStatus("Salvataggio in corso...");
     const synced = await syncToFirebase(newRows, newEvents);
     if (synced) {
       setSaveStatus("✅ Sincronizzato su Firebase Cloud");
     } else {
-      setSaveStatus("💾 Salvato localmente");
+      setSaveStatus("❌ Salvataggio non riuscito: controlla Firebase");
     }
     setTimeout(() => setSaveStatus(""), 3500);
+    return synced;
   };
 
   useEffect(() => {
@@ -146,8 +119,17 @@ export default function EditTimelinePage() {
     else dialogRef.current?.close();
   }, [modalOpen]);
 
-  // Calcolo intervalli (dai dati completi)
-  const years = events.map((e) => e.y).filter(Number.isFinite);
+  const closeModal = () => {
+    setModalOpen(false);
+    clearPendingImage();
+  };
+
+  // Un evento è un periodo se ha un anno finale maggiore di quello iniziale
+  const endYear = (e: TimelineEvent) =>
+    Number.isFinite(e.y2) && Number(e.y2) > e.y ? Number(e.y2) : e.y;
+
+  // Calcolo intervalli (dai dati completi, includendo la fine dei periodi)
+  const years = events.flatMap((e) => [e.y, endYear(e)]).filter(Number.isFinite);
   const dataMin = years.length ? Math.min(...years) : 1550;
   const dataMax = years.length ? Math.max(...years) : 1650;
 
@@ -158,9 +140,9 @@ export default function EditTimelinePage() {
   let maxYear = Math.max(rawFrom, rawTo);
   if (minYear === maxYear) maxYear = minYear + 1;
 
-  // Eventi visibili nell'intervallo scelto
+  // Eventi visibili nell'intervallo scelto (un periodo è visibile se lo interseca)
   const visibleEvents = events.filter(
-    (e) => Number.isFinite(e.y) && e.y >= minYear && e.y <= maxYear
+    (e) => Number.isFinite(e.y) && e.y <= maxYear && endYear(e) >= minYear
   );
 
   const step = (p: number) => {
@@ -180,9 +162,11 @@ export default function EditTimelinePage() {
   };
 
   const openModalForNew = (defaultRow?: string, defaultYear?: number) => {
+    clearPendingImage();
     setEditingEvent(null);
     setFormRow(defaultRow || rows[0]?.id || "");
     setFormYear(defaultYear ?? "");
+    setFormYearEnd("");
     setFormTitle("");
     setFormNotes("");
     setFormColor("blue");
@@ -193,9 +177,11 @@ export default function EditTimelinePage() {
   };
 
   const openModalForEdit = (ev: TimelineEvent) => {
+    clearPendingImage();
     setEditingEvent(ev);
     setFormRow(ev.r);
     setFormYear(ev.y);
+    setFormYearEnd(ev.y2 ?? "");
     setFormTitle(ev.t);
     setFormNotes(ev.n || "");
     setFormColor(ev.col);
@@ -205,13 +191,32 @@ export default function EditTimelinePage() {
     setModalOpen(true);
   };
 
+  const uploadImage = async (blob: Blob): Promise<string> => {
+    const form = new FormData();
+    const subtype = blob.type.split("/")[1] || "jpg";
+    const extension = subtype === "jpeg" ? "jpg" : subtype;
+    form.append("file", blob, `immagine.${extension}`);
+
+    const response = await fetch("/api/upload", { method: "POST", body: form });
+    const payload = (await response.json().catch(() => ({}))) as {
+      id?: string;
+      error?: string;
+    };
+
+    if (!response.ok || !payload.id) {
+      throw new Error(payload.error || "Caricamento immagine non riuscito.");
+    }
+    return payload.id;
+  };
+
   const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setImgError("");
     try {
-      const dataUrl = await resizeImageFile(file);
-      setFormImg(dataUrl);
+      const prepared = await prepareImageFile(file);
+      setPendingImage(prepared);
+      setFormImg("");
     } catch (err) {
       setImgError(err instanceof Error ? err.message : "Caricamento immagine non riuscito.");
     }
@@ -219,10 +224,31 @@ export default function EditTimelinePage() {
 
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
+    setImgError("");
     const yNum = parseInt(String(formYear), 10);
+    const yEndNum = parseInt(String(formYearEnd), 10);
     if (isNaN(yNum) || !formTitle.trim()) return;
+    const hasEnd = Number.isFinite(yEndNum) && yEndNum > yNum;
 
-    const img = sanitizeImageUrl(formImg);
+    let imgValue = formImg;
+    try {
+      if (pendingImage) {
+        const id = await uploadImage(pendingImage.blob);
+        imgValue = `rtdb:${id}`;
+        clearPendingImage();
+        setFormImg(imgValue);
+      } else if (formImg.startsWith("data:")) {
+        const blob = await (await fetch(formImg)).blob();
+        const id = await uploadImage(blob);
+        imgValue = `rtdb:${id}`;
+        setFormImg(imgValue);
+      }
+    } catch (err) {
+      setImgError(err instanceof Error ? err.message : "Caricamento immagine non riuscito.");
+      return;
+    }
+
+    const img = sanitizeImageUrl(imgValue);
     const link = sanitizeLink(formLink);
     const media = {
       ...(img ? { img } : {}),
@@ -231,24 +257,29 @@ export default function EditTimelinePage() {
 
     let updated: TimelineEvent[];
     if (editingEvent) {
-      updated = events.map((item) =>
-        item.id === editingEvent.id
-          ? {
-              ...item,
-              r: formRow,
-              y: yNum,
-              t: formTitle.trim(),
-              n: formNotes.trim(),
-              col: formColor,
-              ...media,
-            }
-          : item
-      );
+      updated = events.map((item) => {
+        if (item.id !== editingEvent.id) return item;
+        const next: TimelineEvent = {
+          ...item,
+          r: formRow,
+          y: yNum,
+          t: formTitle.trim(),
+          n: formNotes.trim(),
+          col: formColor,
+          ...media,
+        };
+        if (hasEnd) next.y2 = yEndNum;
+        else delete next.y2;
+        if (!img) delete next.img;
+        if (!link) delete next.link;
+        return next;
+      });
     } else {
       const newEv: TimelineEvent = {
         id: "e-" + Math.random().toString(36).slice(2, 8),
         r: formRow,
         y: yNum,
+        ...(hasEnd ? { y2: yEndNum } : {}),
         t: formTitle.trim(),
         n: formNotes.trim(),
         col: formColor,
@@ -256,15 +287,15 @@ export default function EditTimelinePage() {
       };
       updated = [...events, newEv];
     }
-    await persistChanges(rows, updated);
-    setModalOpen(false);
+    const saved = await persistChanges(rows, updated);
+    if (saved) closeModal();
   };
 
   const handleDeleteEvent = async () => {
     if (!editingEvent) return;
     const updated = events.filter((item) => item.id !== editingEvent.id);
-    await persistChanges(rows, updated);
-    setModalOpen(false);
+    const saved = await persistChanges(rows, updated);
+    if (saved) closeModal();
   };
 
   const handleAddCountry = async () => {
@@ -293,23 +324,6 @@ export default function EditTimelinePage() {
     }
   };
 
-  const handleSaveFirebaseConfig = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!apiKey.trim() || !projectId.trim()) {
-      alert("Inserisci almeno API Key e Project ID di Firebase.");
-      return;
-    }
-    const conf = {
-      apiKey: apiKey.trim(),
-      projectId: projectId.trim(),
-      authDomain: authDomain.trim(),
-      appId: appId.trim(),
-    };
-    localStorage.setItem("firebase_custom_config", JSON.stringify(conf));
-    setConfigOpen(false);
-    window.location.reload();
-  };
-
   const ticks: Array<{ year: number; x: number }> = [];
   const startTick = Math.ceil(minYear / st) * st;
   for (let t = startTick; t <= maxYear; t += st) {
@@ -334,10 +348,8 @@ export default function EditTimelinePage() {
           <span>🟢 <strong>Firebase Database Connesso:</strong> Le modifiche che salvi qui si sincronizzano all&apos;istante per tutti i visitatori.</span>
         ) : (
           <span>
-            🟡 <strong>Database Firebase non ancora configurato:</strong> Le modifiche vengono salvate nella memoria locale del tuo browser.{" "}
-            <button className="link-button" onClick={() => setConfigOpen(true)}>
-              Clicca qui per collegare il tuo progetto Firebase
-            </button>
+            🟡 <strong>Database Firebase non configurato:</strong> controlla le variabili
+            d&apos;ambiente in <code>.env.local</code> prima di salvare.
           </span>
         )}
       </div>
@@ -369,13 +381,14 @@ export default function EditTimelinePage() {
             const lanes: number[] = [];
             const placements = rowEvents.map((e) => {
               const x = X(e.y);
+              const barWidth = Math.max(W, X(endYear(e)) - x);
               let l = lanes.findIndex((end) => end <= x);
               if (l < 0) {
                 l = lanes.length;
                 lanes.push(0);
               }
-              lanes[l] = x + W + 6;
-              return { event: e, x, lane: l };
+              lanes[l] = x + barWidth + 6;
+              return { event: e, x, lane: l, barWidth };
             });
 
             const rowHeight = Math.max(1, lanes.length) * LH + 10;
@@ -407,21 +420,31 @@ export default function EditTimelinePage() {
                     <div key={t.year} className="tick" style={{ left: `${t.x}px` }} />
                   ))}
 
-                  {placements.map(({ event: ev, x, lane }) => (
-                    <button
-                      key={ev.id}
-                      className={`chip c-${ev.col}`}
-                      style={{ left: `${x}px`, top: `${6 + lane * LH}px` }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openModalForEdit(ev);
-                      }}
-                      title="Clicca per modificare o eliminare"
-                    >
-                      <b>{ev.y}</b>
-                      <span>{ev.t}</span>
-                    </button>
-                  ))}
+                  {placements.map(({ event: ev, x, lane, barWidth }) => {
+                    const end = endYear(ev);
+                    return (
+                      <button
+                        key={ev.id}
+                        className={`chip c-${ev.col}${end > ev.y ? " period" : ""}`}
+                        style={{
+                          left: `${x}px`,
+                          top: `${6 + lane * LH}px`,
+                          width: `${barWidth}px`,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openModalForEdit(ev);
+                        }}
+                        title="Clicca per modificare o eliminare"
+                      >
+                        <b>
+                          {ev.y}
+                          {end > ev.y ? `–${end}` : ""}
+                        </b>
+                        <span>{ev.t}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -470,14 +493,11 @@ export default function EditTimelinePage() {
           <button onClick={() => setPpy((p) => Math.max(1, p / 1.4))} aria-label="Riduci scala">−</button>
           <button onClick={() => setPpy((p) => Math.min(200, p * 1.4))} aria-label="Ingrandisci scala">+</button>
           <button onClick={handleFit}>Adatta</button>
-          <button onClick={() => setConfigOpen(true)} className="btn-cfg">
-            ⚙️ Database Firebase
-          </button>
         </div>
       </div>
 
       {/* Dialog Modale Evento */}
-      <dialog ref={dialogRef} id="dlg" onClose={() => setModalOpen(false)}>
+      <dialog ref={dialogRef} id="dlg" onClose={closeModal}>
         <form onSubmit={handleSaveEvent} id="f">
           <h2 style={{ margin: 0, font: "600 22px var(--font-inter), 'Inter', sans-serif" }}>
             {editingEvent ? "Modifica Evento" : "Nuovo Evento"}
@@ -503,6 +523,17 @@ export default function EditTimelinePage() {
             onChange={(e) => setFormYear(e.target.value)}
           />
 
+          <label htmlFor="y2">Anno fine (opzionale)</label>
+          <input
+            id="y2"
+            type="number"
+            inputMode="numeric"
+            placeholder="Compila solo se è un periodo"
+            value={formYearEnd}
+            onChange={(e) => setFormYearEnd(e.target.value)}
+          />
+          <p className="hint">Lascia vuoto per un evento puntuale.</p>
+
           <label htmlFor="t">Nome Evento</label>
           <input
             id="t"
@@ -527,17 +558,30 @@ export default function EditTimelinePage() {
             type="text"
             inputMode="url"
             placeholder="…oppure incolla l'URL di un'immagine (https://)"
-            value={formImg.startsWith("data:") ? "" : formImg}
-            onChange={(e) => setFormImg(e.target.value)}
+            value={formImg.startsWith("data:") || isRtdbImageUrl(formImg) ? "" : formImg}
+            onChange={(e) => {
+              setFormImg(e.target.value);
+              clearPendingImage();
+            }}
           />
           <p className="img-hint">
-            Le immagini vengono compresse automaticamente (max ~600 KB). In alternativa incolla un URL.
+            Immagini fino a 2 MB, compresse automaticamente. Verranno copiate nel repository
+            al prossimo sync automatico.
           </p>
+          {isRtdbImageUrl(formImg) && !pendingImage && (
+            <p className="img-hint">Immagine caricata: in attesa di sincronizzazione.</p>
+          )}
           {imgError && <p className="img-error">{imgError}</p>}
-          {formImg && (
+          {previewSrc && (
             <div className="img-preview">
-              <img src={formImg} alt="Anteprima immagine" />
-              <button type="button" onClick={() => setFormImg("")}>
+              <img src={previewSrc} alt="Anteprima immagine" />
+              <button
+                type="button"
+                onClick={() => {
+                  setFormImg("");
+                  clearPendingImage();
+                }}
+              >
                 Rimuovi immagine
               </button>
             </div>
@@ -578,77 +622,13 @@ export default function EditTimelinePage() {
                 Elimina
               </button>
             )}
-            <button type="button" onClick={() => setModalOpen(false)}>
+            <button type="button" onClick={closeModal}>
               Chiudi
             </button>
           </div>
         </form>
       </dialog>
 
-      {/* Dialog Configurazione Firebase */}
-      {configOpen && (
-        <dialog open className="info-dialog">
-          <form onSubmit={handleSaveFirebaseConfig} className="dialog-content">
-            <h2 style={{ margin: "0 0 8px", fontSize: "20px" }}>Configurazione Database Firebase</h2>
-            <p style={{ fontSize: "13px", color: "var(--muted)", margin: "0 0 12px" }}>
-              Incolla le chiavi del tuo progetto Firebase (disponibili nella console di Firebase in <em>Project Settings</em> → <em>General</em> → <em>Your apps</em>):
-            </p>
-
-            <label>Firebase API Key</label>
-            <input
-              type="text"
-              required
-              placeholder="AIzaSy..."
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-
-            <label>Project ID</label>
-            <input
-              type="text"
-              required
-              placeholder="il-tuo-progetto"
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-            />
-
-            <label>Auth Domain (opzionale)</label>
-            <input
-              type="text"
-              placeholder="il-tuo-progetto.firebaseapp.com"
-              value={authDomain}
-              onChange={(e) => setAuthDomain(e.target.value)}
-            />
-
-            <label>App ID (opzionale)</label>
-            <input
-              type="text"
-              placeholder="1:123456789:web:abcdef..."
-              value={appId}
-              onChange={(e) => setAppId(e.target.value)}
-            />
-
-            <div className="row" style={{ marginTop: "16px" }}>
-              <button type="submit" className="grow">
-                Salva e Connetti
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  localStorage.removeItem("firebase_custom_config");
-                  window.location.reload();
-                }}
-                className="danger"
-              >
-                Reset
-              </button>
-              <button type="button" onClick={() => setConfigOpen(false)}>
-                Annulla
-              </button>
-            </div>
-          </form>
-        </dialog>
-      )}
     </div>
   );
 }

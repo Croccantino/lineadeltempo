@@ -1,5 +1,80 @@
 Linea del tempo - Guerre di religione in Europa
+================================================
 
-Apri index.html in un browser (serve internet solo per i font).
-Tieni insieme i file index.html, style.css e app.js nella stessa cartella.
-I dati si salvano nel browser (localStorage).
+Applicazione Next.js pubblicata su Vercel. I dati della linea del tempo sono
+in Firebase Realtime Database; le immagini caricate dall'editor vengono poi
+copiate automaticamente nel repository pubblico.
+
+SVILUPPO LOCALE
+---------------
+npm install
+cp .env.local.example .env.local
+# inserisci in .env.local i valori del progetto Firebase
+npm run dev
+
+Apri http://localhost:3000 per la linea del tempo e
+http://localhost:3000/modifica per l'editor.
+
+VARIABILI D'AMBIENTE
+--------------------
+NEXT_PUBLIC_FIREBASE_*  configurazione web Firebase (usata dal browser)
+FIREBASE_DATABASE_URL   URL RTDB usato dall'API di upload lato server
+                        (se assente usa NEXT_PUBLIC_FIREBASE_DATABASE_URL)
+
+Su Vercel vanno impostate le stesse variabili del file .env.local.
+
+DATI
+----
+timeline/main   righe, eventi e updatedAt
+images/<uuid>   { data: "data:image/...;base64,...", type, size, createdAt }
+
+L'editor salva prima l'evento con img = "rtdb:<uuid>", poi la GitHub Action
+converte l'immagine in WebP e aggiorna l'evento a img = "/images/<hash>.webp".
+
+UPLOAD
+------
+L'editor comprime l'immagine nel browser (max 2 MB) e la invia a
+POST /api/upload. L'API scrive il file base64 nel nodo images/<uuid> di RTDB.
+Non viene usato Firebase Storage.
+
+SINCRONIZZAZIONE AUTOMATICA
+---------------------------
+La workflow .github/workflows/sync-images.yml parte ogni 10 minuti e può essere
+avviata manualmente da GitHub (Actions -> Sincronizza immagini -> Run workflow).
+
+Esegue scripts/sync-images.mjs --commit --apply:
+- legge timeline/main;
+- converte le immagini rtdb: in WebP 1200 px dentro public/images;
+- committa e pusha solo public/images;
+- aggiorna gli eventi da rtdb:<uuid> a /images/<hash>.webp;
+- elimina i nodi images non più referenziati dopo 7 giorni.
+
+Il repository deve essere pubblico perché le GitHub Actions gratuite siano
+illimitate. La workflow ha bisogno del secret FIREBASE_DATABASE_URL (facoltativo
+se si usa l'URL predefinito nello script).
+
+Per provare la sincronizzazione in locale:
+npm run sync-images
+
+REGOLE FIREBASE
+---------------
+database.rules.json è attualmente aperto in lettura e scrittura su timeline/main
+e images. È una configurazione temporanea: prima di rendere l'editor pubblico
+va aggiunta l'autenticazione e vanno ristrette le regole di scrittura.
+
+Le vecchie regole Firestore/Storage e i file statici (index.html, app.js,
+style.css) non sono più usati.
+
+LIMITI
+------
+- Vercel Hobby accetta richieste fino a 4,5 MB; il limite applicativo è 2 MB.
+- RTDB free: 1 GB di spazio e 10 GB/mese di download.
+- Dopo il push della Action, Vercel deve completare il deploy: per pochi istanti
+  il nuovo /images/<hash>.webp può restituire 404.
+- GitHub disattiva le workflow programmate dopo 60 giorni senza attività del
+  repository: se succede, riattivale dalla pagina Actions.
+
+COMMIT
+------
+La workflow crea commit automatici con prefisso
+"chore(images): sincronizza immagini da Firebase".

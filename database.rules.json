@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "timeline": {
+      "main": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "images": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

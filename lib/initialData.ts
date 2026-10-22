@@ -6,7 +6,8 @@ export interface TimelineRow {
 export interface TimelineEvent {
   id: string;
   r: string; // row id
-  y: number; // year
+  y: number; // start year
+  y2?: number; // end year (optional): if > y the event spans a period
   t: string; // title
   n: string; // notes
   col: "blue" | "green" | "red" | "yellow";

@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { TimelineRow, TimelineEvent, TimelineData } from "./api/eventi/route";
-import { INITIAL_DATA } from "../lib/initialData";
+import { INITIAL_DATA, TimelineRow, TimelineEvent } from "../lib/initialData";
 import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
-import { sanitizeImageUrl, sanitizeLink } from "../lib/media";
+import { sanitizeLink } from "../lib/media";
+import { useResolvedImage } from "../lib/useResolvedImage";
 
-const STORAGE_KEY = "timeline-proporzionale-nextjs-v1";
 const W = 140;
 const LH = 54;
 const PAD = 14;
@@ -16,8 +15,11 @@ export default function ClientTimelinePage() {
   const [rows, setRows] = useState<TimelineRow[]>(INITIAL_DATA.rows);
   const [events, setEvents] = useState<TimelineEvent[]>(INITIAL_DATA.events);
   const [ppy, setPpy] = useState<number>(10);
-  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [firebaseConnected, setFirebaseConnected] = useState<boolean>(false);
+  const selectedEvent = selectedEventId
+    ? events.find((event) => event.id === selectedEventId) ?? null
+    : null;
   const [rangeFrom, setRangeFrom] = useState<number | "">("");
   const [rangeTo, setRangeTo] = useState<number | "">("");
   const [photoZoom, setPhotoZoom] = useState(false);
@@ -34,49 +36,24 @@ export default function ClientTimelinePage() {
     setPhotoZoom(false);
   }, [selectedEvent]);
 
-  // Inizializzazione: ascolto Realtime Firebase o fallback localStorage / API
   useEffect(() => {
     setFirebaseConnected(isFirebaseActive());
 
-    // 1. Iscrizione Realtime a Firebase
     const unsubscribe = subscribeToFirebase((data) => {
       setRows(data.rows);
       setEvents(data.events);
       setFirebaseConnected(true);
     });
 
-    // 2. Carica da localStorage se valido, altrimenti dall'API (dati iniziali come fallback)
-    let usedStorage = false;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.rows) && parsed.rows.length > 0 && Array.isArray(parsed.events)) {
-          setRows(parsed.rows);
-          setEvents(parsed.events);
-          if (parsed.ppy) setPpy(parsed.ppy);
-          usedStorage = true;
-        }
-      } catch (e) {}
-    }
-
-    if (!usedStorage) {
-      fetch("/api/eventi")
-        .then((res) => res.json())
-        .then((data: TimelineData) => {
-          if (Array.isArray(data.rows) && data.rows.length > 0) {
-            setRows(data.rows);
-            setEvents(data.events);
-          }
-        })
-        .catch(() => {});
-    }
-
     return () => unsubscribe();
   }, []);
 
-  // Anno min e max (dai dati completi)
-  const years = events.map((e) => e.y).filter(Number.isFinite);
+  // Un evento è un periodo se ha un anno finale maggiore di quello iniziale
+  const endYear = (e: TimelineEvent) =>
+    Number.isFinite(e.y2) && Number(e.y2) > e.y ? Number(e.y2) : e.y;
+
+  // Anno min e max (dai dati completi, includendo la fine dei periodi)
+  const years = events.flatMap((e) => [e.y, endYear(e)]).filter(Number.isFinite);
   const dataMin = years.length ? Math.min(...years) : 1550;
   const dataMax = years.length ? Math.max(...years) : 1650;
 
@@ -87,9 +64,9 @@ export default function ClientTimelinePage() {
   let maxYear = Math.max(rawFrom, rawTo);
   if (minYear === maxYear) maxYear = minYear + 1;
 
-  // Eventi visibili nell'intervallo scelto
+  // Eventi visibili nell'intervallo scelto (un periodo è visibile se lo interseca)
   const visibleEvents = events.filter(
-    (e) => Number.isFinite(e.y) && e.y >= minYear && e.y <= maxYear
+    (e) => Number.isFinite(e.y) && e.y <= maxYear && endYear(e) >= minYear
   );
 
   const step = (p: number) => {
@@ -115,7 +92,7 @@ export default function ClientTimelinePage() {
   }
 
   const selectedCountryName = rows.find((r) => r.id === selectedEvent?.r)?.name || "";
-  const selectedImg = selectedEvent ? sanitizeImageUrl(selectedEvent.img || "") : "";
+  const { src: selectedImg } = useResolvedImage(selectedEvent?.img);
   const selectedLink = selectedEvent ? sanitizeLink(selectedEvent.link || "") : "";
 
   return (
@@ -161,13 +138,14 @@ export default function ClientTimelinePage() {
             const lanes: number[] = [];
             const placements = rowEvents.map((e) => {
               const x = X(e.y);
+              const barWidth = Math.max(W, X(endYear(e)) - x);
               let l = lanes.findIndex((end) => end <= x);
               if (l < 0) {
                 l = lanes.length;
                 lanes.push(0);
               }
-              lanes[l] = x + W + 6;
-              return { event: e, x, lane: l };
+              lanes[l] = x + barWidth + 6;
+              return { event: e, x, lane: l, barWidth };
             });
 
             const rowHeight = Math.max(1, lanes.length) * LH + 10;
@@ -182,17 +160,23 @@ export default function ClientTimelinePage() {
                     <div key={t.year} className="tick" style={{ left: `${t.x}px` }} />
                   ))}
 
-                  {placements.map(({ event: ev, x, lane }) => (
-                    <button
-                      key={ev.id}
-                      className={`chip c-${ev.col}`}
-                      style={{ left: `${x}px`, top: `${6 + lane * LH}px` }}
-                      onClick={() => setSelectedEvent(ev)}
-                    >
-                      <b>{ev.y}</b>
-                      <span>{ev.t}</span>
-                    </button>
-                  ))}
+                  {placements.map(({ event: ev, x, lane, barWidth }) => {
+                    const end = endYear(ev);
+                    return (
+                      <button
+                        key={ev.id}
+                        className={`chip c-${ev.col}${end > ev.y ? " period" : ""}`}
+                        style={{ left: `${x}px`, top: `${6 + lane * LH}px`, width: `${barWidth}px` }}
+                        onClick={() => setSelectedEventId(ev.id)}
+                      >
+                        <b>
+                          {ev.y}
+                          {end > ev.y ? `–${end}` : ""}
+                        </b>
+                        <span>{ev.t}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -251,16 +235,19 @@ export default function ClientTimelinePage() {
         <dialog
           ref={infoDialogRef}
           className="note-dialog"
-          onClose={() => setSelectedEvent(null)}
+          onClose={() => setSelectedEventId(null)}
           onClick={(e) => {
-            if (e.target === e.currentTarget) setSelectedEvent(null);
+            if (e.target === e.currentTarget) setSelectedEventId(null);
           }}
         >
           <article className={`note c-${selectedEvent.col}`}>
             <span className="note-tape" aria-hidden="true" />
 
             <div className="note-head">
-              <span className="note-year">{selectedEvent.y}</span>
+              <span className="note-year">
+                {selectedEvent.y}
+                {endYear(selectedEvent) > selectedEvent.y ? `–${endYear(selectedEvent)}` : ""}
+              </span>
               <h2 className="note-title">{selectedEvent.t}</h2>
               <p className="note-country">Paese: {selectedCountryName}</p>
             </div>
@@ -308,7 +295,7 @@ export default function ClientTimelinePage() {
             </div>
 
             <footer className="note-foot">
-              <button type="button" onClick={() => setSelectedEvent(null)}>
+              <button type="button" onClick={() => setSelectedEventId(null)}>
                 Chiudi
               </button>
             </footer>

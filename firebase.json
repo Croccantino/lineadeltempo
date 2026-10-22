@@ -1,24 +1,5 @@
 {
-  "hosting": {
-    "public": ".next",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "/api/:path*",
-        "function": "api"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+  "database": {
+    "rules": "database.rules.json"
   }
 }
