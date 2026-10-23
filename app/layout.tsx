@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Caveat } from "next/font/google";
 import "./globals.css";
+import FeedbackButton from "./components/FeedbackButton";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,6 +33,7 @@ export default function RootLayout({
           Realizzato da <strong>Francesco Zompì</strong> · Presentato da{" "}
           <strong>Alessandro Rizzo</strong>
         </footer>
+        <FeedbackButton />
       </body>
     </html>
   );
