@@ -50,6 +50,10 @@ l'immagine in WebP e aggiorna l'evento a img = "/images/<hash>.webp".
 Ogni evento può avere un campo opzionale video con il link YouTube. Nella
 scheda di lettura viene mostrato il player con l'anteprima del video.
 
+Un evento può essere associato a più paesi: r contiene il paese principale,
+rs contiene gli eventuali paesi aggiuntivi. L'evento compare nella riga di
+ogni paese associato.
+
 VIDEO YOUTUBE
 -------------
 L'editor accetta link youtube.com/watch, youtu.be, /embed, /shorts o /live.

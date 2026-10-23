@@ -7,6 +7,7 @@ import {
   TimelineRow,
   TimelineEvent,
   TIMELINE_COLORS,
+  getEventRowIds,
 } from "../../lib/initialData";
 import {
   syncToFirebase,
@@ -42,7 +43,7 @@ export default function EditTimelinePage() {
   // Stato Modale Evento
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
-  const [formRow, setFormRow] = useState("");
+  const [formRows, setFormRows] = useState<string[]>([]);
   const [formYear, setFormYear] = useState<number | string>("");
   const [formYearEnd, setFormYearEnd] = useState<number | string>("");
   const [formTitle, setFormTitle] = useState("");
@@ -94,7 +95,7 @@ export default function EditTimelinePage() {
     if (!ev) return;
     clearPendingImage();
     setEditingEvent(ev);
-    setFormRow(ev.r);
+    setFormRows(getEventRowIds(ev));
     setFormYear(ev.y);
     setFormYearEnd(ev.y2 ?? "");
     setFormTitle(ev.t);
@@ -176,10 +177,28 @@ export default function EditTimelinePage() {
     setPpy(Math.round(newPpy * 10) / 10);
   };
 
+  const updateFormRow = (index: number, value: string) => {
+    setFormRows((current) => current.map((id, i) => (i === index ? value : id)));
+  };
+
+  const addFormRow = () => {
+    setFormRows((current) => {
+      const next = rows.find((r) => !current.includes(r.id))?.id;
+      return next ? [...current, next] : current;
+    });
+  };
+
+  const removeFormRow = (index: number) => {
+    setFormRows((current) =>
+      current.length > 1 ? current.filter((_, i) => i !== index) : current
+    );
+  };
+
   const openModalForNew = (defaultRow?: string, defaultYear?: number) => {
     clearPendingImage();
     setEditingEvent(null);
-    setFormRow(defaultRow || rows[0]?.id || "");
+    const initialRow = defaultRow || rows[0]?.id || "";
+    setFormRows(initialRow ? [initialRow] : []);
     setFormYear(defaultYear ?? "");
     setFormYearEnd("");
     setFormTitle("");
@@ -195,7 +214,7 @@ export default function EditTimelinePage() {
   const openModalForEdit = (ev: TimelineEvent) => {
     clearPendingImage();
     setEditingEvent(ev);
-    setFormRow(ev.r);
+    setFormRows(getEventRowIds(ev));
     setFormYear(ev.y);
     setFormYearEnd(ev.y2 ?? "");
     setFormTitle(ev.t);
@@ -238,6 +257,12 @@ export default function EditTimelinePage() {
       return;
     }
 
+    const selectedRows = Array.from(
+      new Set(formRows.filter((id) => rows.some((row) => row.id === id)))
+    );
+    if (selectedRows.length === 0) return;
+    const [primaryRow, ...extraRows] = selectedRows;
+
     let imgValue = formImg;
     try {
       if (pendingImage) {
@@ -271,7 +296,7 @@ export default function EditTimelinePage() {
         if (item.id !== editingEvent.id) return item;
         const next: TimelineEvent = {
           ...item,
-          r: formRow,
+          r: primaryRow,
           y: yNum,
           t: formTitle.trim(),
           n: formNotes.trim(),
@@ -279,6 +304,8 @@ export default function EditTimelinePage() {
         };
         if (hasEnd) next.y2 = yEndNum;
         else delete next.y2;
+        if (extraRows.length) next.rs = extraRows;
+        else delete next.rs;
         if (!img) delete next.img;
         if (!link) delete next.link;
         if (!video) delete next.video;
@@ -287,8 +314,9 @@ export default function EditTimelinePage() {
     } else {
       const newEv: TimelineEvent = {
         id: "e-" + Math.random().toString(36).slice(2, 8),
-        r: formRow,
+        r: primaryRow,
         y: yNum,
+        ...(extraRows.length ? { rs: extraRows } : {}),
         ...(hasEnd ? { y2: yEndNum } : {}),
         t: formTitle.trim(),
         n: formNotes.trim(),
@@ -348,9 +376,25 @@ export default function EditTimelinePage() {
   };
 
   const handleDeleteCountry = async (r: TimelineRow) => {
-    if (!window.confirm(`Eliminare il paese "${r.name}" e tutti i suoi eventi?`)) return;
+    if (
+      !window.confirm(
+        `Eliminare il paese "${r.name}"? Gli eventi condivisi con altri paesi resteranno.`
+      )
+    ) {
+      return;
+    }
     const updatedRows = rows.filter((row) => row.id !== r.id);
-    const updatedEvents = events.filter((e) => e.r !== r.id);
+    const updatedEvents = events.flatMap((e) => {
+      const ids = getEventRowIds(e);
+      if (!ids.includes(r.id)) return [e];
+      const remaining = ids.filter((id) => id !== r.id);
+      if (remaining.length === 0) return [];
+      const [primary, ...extra] = remaining;
+      const next: TimelineEvent = { ...e, r: primary };
+      if (extra.length) next.rs = extra;
+      else delete next.rs;
+      return [next];
+    });
     await persistChanges(updatedRows, updatedEvents);
   };
 
@@ -434,7 +478,7 @@ export default function EditTimelinePage() {
           {/* Righe dei Paesi */}
           {rows.map((row) => {
             const rowEvents = visibleEvents
-              .filter((e) => e.r === row.id && Number.isFinite(e.y))
+              .filter((e) => getEventRowIds(e).includes(row.id) && Number.isFinite(e.y))
               .sort((a, b) => a.y - b.y);
 
             const lanes: number[] = [];
@@ -577,14 +621,54 @@ export default function EditTimelinePage() {
             {editingEvent ? "Modifica Evento" : "Nuovo Evento"}
           </h2>
 
-          <label htmlFor="p">Paese</label>
-          <select id="p" value={formRow} onChange={(e) => setFormRow(e.target.value)} required>
-            {rows.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
+          <label htmlFor="p">Paesi</label>
+          <div className="country-selects">
+            {formRows.map((selectedRowId, index) => (
+              <div className="country-select-row" key={index}>
+                <select
+                  id={index === 0 ? "p" : undefined}
+                  aria-label={`Paese ${index + 1}`}
+                  value={selectedRowId}
+                  onChange={(e) => updateFormRow(index, e.target.value)}
+                  required
+                >
+                  {rows.map((r) => (
+                    <option
+                      key={r.id}
+                      value={r.id}
+                      disabled={formRows.includes(r.id) && formRows[index] !== r.id}
+                    >
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+                {formRows.length > 1 && (
+                  <button
+                    type="button"
+                    className="country-remove"
+                    onClick={() => removeFormRow(index)}
+                    title="Rimuovi questo paese"
+                    aria-label="Rimuovi questo paese"
+                  >
+                    −
+                  </button>
+                )}
+                {index === formRows.length - 1 && (
+                  <button
+                    type="button"
+                    className="country-add"
+                    onClick={addFormRow}
+                    disabled={formRows.length >= rows.length}
+                    title="Aggiungi un altro paese"
+                    aria-label="Aggiungi un altro paese"
+                  >
+                    +
+                  </button>
+                )}
+              </div>
             ))}
-          </select>
+          </div>
+          <p className="img-hint">Puoi associare l&apos;evento a più paesi con il pulsante +.</p>
 
           <label htmlFor="y">Anno</label>
           <input

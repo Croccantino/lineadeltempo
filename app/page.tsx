@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { INITIAL_DATA, TimelineRow, TimelineEvent } from "../lib/initialData";
+import {
+  INITIAL_DATA,
+  TimelineRow,
+  TimelineEvent,
+  getEventRowIds,
+} from "../lib/initialData";
 import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
 import { getYouTubeId, sanitizeLink, youtubeEmbedUrl } from "../lib/media";
 import { useResolvedImage } from "../lib/useResolvedImage";
@@ -92,9 +97,11 @@ export default function ClientTimelinePage() {
     ticks.push({ year: t, x: X(t) });
   }
 
-  const selectedRow = rows.find((r) => r.id === selectedEvent?.r);
-  const selectedCountryName = selectedRow?.name || "";
-  const selectedNoteColor = selectedRow?.col || "blue";
+  const selectedRows = selectedEvent
+    ? getEventRowIds(selectedEvent).flatMap((id) => rows.filter((row) => row.id === id))
+    : [];
+  const selectedCountryName = selectedRows.map((row) => row.name).join(", ");
+  const selectedNoteColor = selectedRows[0]?.col || "blue";
   const { src: selectedImg } = useResolvedImage(selectedEvent?.img);
   const selectedLink = selectedEvent ? sanitizeLink(selectedEvent.link || "") : "";
   const selectedVideoId = getYouTubeId(selectedEvent?.video || "");
@@ -136,7 +143,7 @@ export default function ClientTimelinePage() {
           {/* Righe dei Paesi */}
           {rows.map((row) => {
             const rowEvents = visibleEvents
-              .filter((e) => e.r === row.id && Number.isFinite(e.y))
+              .filter((e) => getEventRowIds(e).includes(row.id) && Number.isFinite(e.y))
               .sort((a, b) => a.y - b.y);
 
             const lanes: number[] = [];
@@ -254,7 +261,9 @@ export default function ClientTimelinePage() {
                 {endYear(selectedEvent) > selectedEvent.y ? `–${endYear(selectedEvent)}` : ""}
               </span>
               <h2 className="note-title">{selectedEvent.t}</h2>
-              <p className="note-country">Paese: {selectedCountryName}</p>
+              <p className="note-country">
+                {selectedRows.length > 1 ? "Paesi" : "Paese"}: {selectedCountryName}
+              </p>
             </div>
 
             <div className="note-body">

@@ -18,6 +18,15 @@ export interface TimelineEvent {
   img?: string; // photo URL or data URL (base64)
   link?: string; // external reference link
   video?: string; // YouTube video URL
+  rs?: string[]; // additional row ids beyond the primary r
+}
+
+export function getEventRowIds(event: TimelineEvent): string[] {
+  const extras = Array.isArray(event.rs) ? event.rs : [];
+  const ids = [event.r, ...extras].filter(
+    (id): id is string => typeof id === "string" && id.length > 0
+  );
+  return Array.from(new Set(ids));
 }
 
 export interface TimelineData {
