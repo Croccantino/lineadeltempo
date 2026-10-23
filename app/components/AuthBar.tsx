@@ -164,6 +164,7 @@ export default function AuthBar() {
   };
 
   const handleLogout = async () => {
+    if (!window.confirm("Vuoi davvero uscire dal tuo account?")) return;
     setError("");
     setSubmitting(true);
     try {
