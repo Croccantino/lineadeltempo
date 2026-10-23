@@ -1,5 +1,14 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getDatabase, ref, set, onValue, serverTimestamp } from "firebase/database";
+import {
+  getAuth,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  type Auth,
+  type User,
+} from "firebase/auth";
 import { TimelineRow, TimelineEvent, TimelineData } from "./initialData";
 
 const getEnvConfig = () => ({
@@ -12,10 +21,16 @@ const getEnvConfig = () => ({
 });
 
 let firebaseApp: FirebaseApp | null = null;
+let authInstance: Auth | null = null;
 
 export const isFirebaseActive = () => {
   const conf = getEnvConfig();
   return Boolean(conf.apiKey && conf.projectId && conf.databaseURL);
+};
+
+export const isAuthActive = () => {
+  const conf = getEnvConfig();
+  return Boolean(conf.apiKey && conf.authDomain && conf.projectId);
 };
 
 const getFirebaseApp = (): FirebaseApp | null => {
@@ -40,6 +55,69 @@ export const getDbInstance = () => {
     return null;
   }
 };
+
+export const getAuthInstance = (): Auth | null => {
+  if (!isAuthActive()) return null;
+  if (authInstance) return authInstance;
+  const app = getFirebaseApp();
+  if (!app) return null;
+  try {
+    authInstance = getAuth(app);
+    return authInstance;
+  } catch (err) {
+    console.warn("Inizializzazione autenticazione non riuscita:", err);
+    return null;
+  }
+};
+
+const requireAuth = (): Auth => {
+  const auth = getAuthInstance();
+  if (!auth) throw new Error("Firebase Auth non configurato. Controlla le variabili d'ambiente.");
+  return auth;
+};
+
+export async function signUpWithEmail(email: string, password: string): Promise<User> {
+  const credential = await createUserWithEmailAndPassword(requireAuth(), email, password);
+  return credential.user;
+}
+
+export async function signInWithEmail(email: string, password: string): Promise<User> {
+  const credential = await signInWithEmailAndPassword(requireAuth(), email, password);
+  return credential.user;
+}
+
+export async function signOutUser(): Promise<void> {
+  const auth = getAuthInstance();
+  if (!auth) return;
+  await signOut(auth);
+}
+
+export function subscribeToAuthState(
+  onUpdate: (user: User | null) => void,
+  onError?: (error: unknown) => void
+): () => void {
+  const auth = getAuthInstance();
+  if (!auth) {
+    onUpdate(null);
+    return () => {};
+  }
+  try {
+    return onAuthStateChanged(
+      auth,
+      (user) => onUpdate(user),
+      (err) => {
+        console.warn("Errore listener autenticazione:", err);
+        if (onError) onError(err);
+        onUpdate(null);
+      }
+    );
+  } catch (err) {
+    console.warn("Impossibile connettere il listener di autenticazione:", err);
+    if (onError) onError(err);
+    onUpdate(null);
+    return () => {};
+  }
+}
 
 const DB_PATH = "timeline/main";
 

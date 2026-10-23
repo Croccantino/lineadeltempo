@@ -6,6 +6,7 @@ import { INITIAL_DATA, TimelineRow, TimelineEvent } from "../lib/initialData";
 import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
 import { sanitizeLink } from "../lib/media";
 import { useResolvedImage } from "../lib/useResolvedImage";
+import AuthBar from "./components/AuthBar";
 
 const W = 140;
 const LH = 54;
@@ -228,6 +229,7 @@ export default function ClientTimelinePage() {
             ✏️ Modifica
           </Link>
         </div>
+        <AuthBar />
       </div>
 
       {/* Scheda evento stile nota (modalità lettura) */}

@@ -16,6 +16,7 @@ import {
   isRtdbImageUrl,
 } from "../../lib/media";
 import { useResolvedImage } from "../../lib/useResolvedImage";
+import { useAuth } from "../../lib/useAuth";
 
 const W = 140;
 const LH = 54;
@@ -52,6 +53,7 @@ export default function EditTimelinePage() {
   const [imgError, setImgError] = useState("");
   const [pendingImage, setPendingImage] = useState<{ blob: Blob; previewUrl: string } | null>(null);
 
+  const { user, loading: authLoading } = useAuth();
   const { src: resolvedFormImg } = useResolvedImage(formImg);
   const previewSrc = pendingImage?.previewUrl || resolvedFormImg;
 
@@ -120,9 +122,14 @@ export default function EditTimelinePage() {
   };
 
   useEffect(() => {
-    if (modalOpen) dialogRef.current?.showModal();
-    else dialogRef.current?.close();
-  }, [modalOpen]);
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (modalOpen && user) {
+      if (!dialog.open) dialog.showModal();
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }, [modalOpen, user]);
 
   const closeModal = () => {
     setModalOpen(false);
@@ -317,6 +324,35 @@ export default function EditTimelinePage() {
   const startTick = Math.ceil(minYear / st) * st;
   for (let t = startTick; t <= maxYear; t += st) {
     ticks.push({ year: t, x: X(t) });
+  }
+
+  if (authLoading) {
+    return (
+      <div id="app">
+        <div className="auth-gate">
+          <span className="auth-loading">Verifica accesso…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div id="app">
+        <div className="auth-gate">
+          <h1>Accesso riservato</h1>
+          <p>Devi effettuare il login per modificare la linea del tempo.</p>
+          <div className="auth-gate-actions">
+            <Link href="/?login=1&next=/modifica" className="btn-login">
+              Vai al login
+            </Link>
+            <Link href="/" className="btn-back-nav">
+              ← Torna alla Vista Client
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
