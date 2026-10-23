@@ -1129,11 +1129,47 @@ button:disabled {
   font-weight: 600;
 }
 
+.feedback-button {
+  position: fixed;
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  z-index: 31;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  color: #fffefa;
+  font-weight: 600;
+  text-decoration: none;
+  background: linear-gradient(135deg, #c18b2b, #593a25);
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  box-shadow: var(--shadow-md);
+  transition: filter 0.16s, transform 0.08s, box-shadow 0.16s;
+}
+
+.feedback-button:hover {
+  color: #fffefa;
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.feedback-button:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 640px) {
   .site-footer {
     left: 8px;
     bottom: 8px;
     padding: 5px 10px;
     font-size: 11px;
+  }
+
+  .feedback-button {
+    right: calc(8px + env(safe-area-inset-right, 0px));
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 }
