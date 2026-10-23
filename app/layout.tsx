@@ -26,7 +26,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" className={`${inter.variable} ${caveat.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <footer className="site-footer">
+          Realizzato da <strong>Francesco Zompì</strong> · Presentato da{" "}
+          <strong>Alessandro Rizzo</strong>
+        </footer>
+      </body>
     </html>
   );
 }
