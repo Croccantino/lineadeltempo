@@ -7,12 +7,12 @@
   --ink: #29251f;
   --card: #fbf7ed;
   --muted: #766b58;
-  --blue: #405c73;
-  --green: #48634d;
-  --red: #813e3a;
-  --yellow: #8b6b2f;
+  --blue: #765b4b;
+  --green: #59664a;
+  --red: #904b3d;
+  --yellow: #866323;
   --accent: #805b2b;
-  --accent-2: #9a7541;
+  --accent-2: #926a37;
   --radius: 8px;
   --radius-sm: 5px;
   --shadow-sm: 0 1px 2px rgba(48, 35, 19, 0.08);
@@ -35,12 +35,12 @@
     --ink: #eee5d2;
     --card: #24241f;
     --muted: #b1a58e;
-    --blue: #405c73;
-    --green: #48634d;
-    --red: #813e3a;
-    --yellow: #8b6b2f;
-    --accent: #c09a5a;
-    --accent-2: #80633c;
+    --blue: #87674f;
+    --green: #6c7653;
+    --red: #a95745;
+    --yellow: #967435;
+    --accent: #8a6331;
+    --accent-2: #76552d;
     --shadow-md: 0 8px 22px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 18px 42px rgba(0, 0, 0, 0.48);
   }
@@ -56,12 +56,12 @@
   --ink: #eee5d2;
   --card: #24241f;
   --muted: #b1a58e;
-  --blue: #405c73;
-  --green: #48634d;
-  --red: #813e3a;
-  --yellow: #8b6b2f;
-  --accent: #c09a5a;
-  --accent-2: #80633c;
+  --blue: #87674f;
+  --green: #6c7653;
+  --red: #a95745;
+  --yellow: #967435;
+  --accent: #8a6331;
+  --accent-2: #76552d;
   --shadow-md: 0 8px 22px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 18px 42px rgba(0, 0, 0, 0.48);
 }
@@ -124,8 +124,8 @@ h1 {
 button, select {
   font: inherit;
   color: var(--ink);
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
   border-radius: var(--radius-sm);
   padding: 7px 12px;
   cursor: pointer;
