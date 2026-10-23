@@ -15,7 +15,7 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "Linea del tempo – Guerre di religione in Europa",
+  title: "Linea del Tempo",
   description: "Web application full-stack creata con Next.js, React e TypeScript",
 };
 

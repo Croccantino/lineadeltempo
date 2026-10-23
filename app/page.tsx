@@ -103,7 +103,7 @@ export default function ClientTimelinePage() {
     <div id="app">
       <header>
         <div>
-          <h1>Guerre di religione in Europa</h1>
+          <h1>Linea del Tempo</h1>
           <div className="header-badges">
             <span className="badge-client">📖 Vista Client (Lettura)</span>
             {firebaseConnected ? (
