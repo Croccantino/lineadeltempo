@@ -18,6 +18,8 @@ import {
   prepareImageFile,
   sanitizeImageUrl,
   sanitizeLink,
+  getYouTubeId,
+  youtubeThumbnailUrl,
   isRtdbImageUrl,
 } from "../../lib/media";
 import { useResolvedImage } from "../../lib/useResolvedImage";
@@ -47,12 +49,15 @@ export default function EditTimelinePage() {
   const [formNotes, setFormNotes] = useState("");
   const [formImg, setFormImg] = useState("");
   const [formLink, setFormLink] = useState("");
+  const [formVideo, setFormVideo] = useState("");
   const [imgError, setImgError] = useState("");
+  const [videoError, setVideoError] = useState("");
   const [pendingImage, setPendingImage] = useState<{ blob: Blob; previewUrl: string } | null>(null);
 
   const { user, loading: authLoading } = useAuth();
   const { src: resolvedFormImg } = useResolvedImage(formImg);
   const previewSrc = pendingImage?.previewUrl || resolvedFormImg;
+  const videoPreviewId = getYouTubeId(formVideo);
 
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -96,7 +101,9 @@ export default function EditTimelinePage() {
     setFormNotes(ev.n || "");
     setFormImg(ev.img || "");
     setFormLink(ev.link || "");
+    setFormVideo(ev.video || "");
     setImgError("");
+    setVideoError("");
     setModalOpen(true);
     setPendingEventId(null);
   }, [events, pendingEventId]);
@@ -179,7 +186,9 @@ export default function EditTimelinePage() {
     setFormNotes("");
     setFormImg("");
     setFormLink("");
+    setFormVideo("");
     setImgError("");
+    setVideoError("");
     setModalOpen(true);
   };
 
@@ -193,7 +202,9 @@ export default function EditTimelinePage() {
     setFormNotes(ev.n || "");
     setFormImg(ev.img || "");
     setFormLink(ev.link || "");
+    setFormVideo(ev.video || "");
     setImgError("");
+    setVideoError("");
     setModalOpen(true);
   };
 
@@ -215,10 +226,17 @@ export default function EditTimelinePage() {
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     setImgError("");
+    setVideoError("");
     const yNum = parseInt(String(formYear), 10);
     const yEndNum = parseInt(String(formYearEnd), 10);
     if (isNaN(yNum) || !formTitle.trim()) return;
     const hasEnd = Number.isFinite(yEndNum) && yEndNum > yNum;
+
+    const videoId = getYouTubeId(formVideo);
+    if (formVideo.trim() && !videoId) {
+      setVideoError("Inserisci un link YouTube valido.");
+      return;
+    }
 
     let imgValue = formImg;
     try {
@@ -240,9 +258,11 @@ export default function EditTimelinePage() {
 
     const img = sanitizeImageUrl(imgValue);
     const link = sanitizeLink(formLink);
+    const video = videoId ? `https://www.youtube.com/watch?v=${videoId}` : "";
     const media = {
       ...(img ? { img } : {}),
       ...(link ? { link } : {}),
+      ...(video ? { video } : {}),
     };
 
     let updated: TimelineEvent[];
@@ -261,6 +281,7 @@ export default function EditTimelinePage() {
         else delete next.y2;
         if (!img) delete next.img;
         if (!link) delete next.link;
+        if (!video) delete next.video;
         return next;
       });
     } else {
@@ -649,6 +670,41 @@ export default function EditTimelinePage() {
             value={formLink}
             onChange={(e) => setFormLink(e.target.value)}
           />
+
+          <label htmlFor="video">Video YouTube</label>
+          <input
+            id="video"
+            type="text"
+            inputMode="url"
+            placeholder="https://www.youtube.com/watch?v=…"
+            value={formVideo}
+            onChange={(e) => {
+              setFormVideo(e.target.value);
+              setVideoError("");
+            }}
+          />
+          <p className="img-hint">
+            Incolla il link del video: nella scheda apparirà l&apos;anteprima YouTube.
+          </p>
+          {videoError && <p className="img-error">{videoError}</p>}
+          {videoPreviewId && (
+            <div className="video-preview">
+              <img
+                src={youtubeThumbnailUrl(videoPreviewId)}
+                alt="Anteprima video YouTube"
+                loading="lazy"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setFormVideo("");
+                  setVideoError("");
+                }}
+              >
+                Rimuovi video
+              </button>
+            </div>
+          )}
 
           <div className="row">
             <button type="submit" className="grow">

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { INITIAL_DATA, TimelineRow, TimelineEvent } from "../lib/initialData";
 import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
-import { sanitizeLink } from "../lib/media";
+import { getYouTubeId, sanitizeLink, youtubeEmbedUrl } from "../lib/media";
 import { useResolvedImage } from "../lib/useResolvedImage";
 import AuthBar from "./components/AuthBar";
 
@@ -97,6 +97,7 @@ export default function ClientTimelinePage() {
   const selectedNoteColor = selectedRow?.col || "blue";
   const { src: selectedImg } = useResolvedImage(selectedEvent?.img);
   const selectedLink = selectedEvent ? sanitizeLink(selectedEvent.link || "") : "";
+  const selectedVideoId = getYouTubeId(selectedEvent?.video || "");
 
   return (
     <div id="app">
@@ -260,6 +261,19 @@ export default function ClientTimelinePage() {
               <p className="note-notes">
                 {selectedEvent.n ? selectedEvent.n : "Nessun appunto registrato per questo evento."}
               </p>
+
+              {selectedVideoId && (
+                <div className="note-video">
+                  <iframe
+                    src={youtubeEmbedUrl(selectedVideoId)}
+                    title={`Video YouTube: ${selectedEvent.t}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                </div>
+              )}
 
               {selectedImg && (
                 <button

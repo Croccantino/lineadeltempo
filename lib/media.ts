@@ -3,6 +3,7 @@ export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const DATA_IMAGE_RE = /^data:image\/(png|jpe?g|webp|gif|avif);base64,/i;
 const LOCAL_IMAGE_RE = /^\/images\/[A-Za-z0-9._-]+\.(webp|jpe?g|png|gif|avif)$/i;
 const RTDB_IMAGE_RE = /^rtdb:[A-Za-z0-9-]+$/;
+const YOUTUBE_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 
 function isDataImageUrl(value: string): boolean {
   return DATA_IMAGE_RE.test(value.trim());
@@ -40,6 +41,44 @@ export function sanitizeImageUrl(value: string): string {
 
 export function sanitizeLink(value: string): string {
   return safeHttpUrl(value);
+}
+
+export function getYouTubeId(value: string): string {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return "";
+  if (YOUTUBE_ID_RE.test(trimmed)) return trimmed;
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return "";
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+
+  const host = url.hostname.toLowerCase().replace(/^(www|m|music)\./, "");
+  if (host === "youtu.be") {
+    const id = url.pathname.split("/").filter(Boolean)[0] || "";
+    return YOUTUBE_ID_RE.test(id) ? id : "";
+  }
+  if (host !== "youtube.com" && host !== "youtube-nocookie.com") return "";
+
+  const parts = url.pathname.split("/").filter(Boolean);
+  let id = "";
+  if (parts[0] === "watch") {
+    id = url.searchParams.get("v") || "";
+  } else if (parts[0] === "embed" || parts[0] === "shorts" || parts[0] === "live" || parts[0] === "v") {
+    id = parts[1] || "";
+  }
+  return YOUTUBE_ID_RE.test(id) ? id : "";
+}
+
+export function youtubeThumbnailUrl(id: string): string {
+  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "";
+}
+
+export function youtubeEmbedUrl(id: string): string {
+  return id ? `https://www.youtube-nocookie.com/embed/${id}` : "";
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {

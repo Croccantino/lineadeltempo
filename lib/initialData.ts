@@ -17,6 +17,7 @@ export interface TimelineEvent {
   n: string; // notes
   img?: string; // photo URL or data URL (base64)
   link?: string; // external reference link
+  video?: string; // YouTube video URL
 }
 
 export interface TimelineData {
