@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { INITIAL_DATA, TimelineRow, TimelineEvent } from "../../lib/initialData";
+import {
+  INITIAL_DATA,
+  TimelineRow,
+  TimelineEvent,
+  TIMELINE_COLORS,
+} from "../../lib/initialData";
 import {
   syncToFirebase,
   subscribeToFirebase,
@@ -22,13 +27,6 @@ const W = 140;
 const LH = 54;
 const PAD = 14;
 
-const COLORS: Array<["blue" | "green" | "red" | "yellow", string]> = [
-  ["blue", "Blu"],
-  ["green", "Verde"],
-  ["red", "Rosso"],
-  ["yellow", "Giallo"],
-];
-
 export default function EditTimelinePage() {
   const [rows, setRows] = useState<TimelineRow[]>(INITIAL_DATA.rows);
   const [events, setEvents] = useState<TimelineEvent[]>(INITIAL_DATA.events);
@@ -47,7 +45,6 @@ export default function EditTimelinePage() {
   const [formYearEnd, setFormYearEnd] = useState<number | string>("");
   const [formTitle, setFormTitle] = useState("");
   const [formNotes, setFormNotes] = useState("");
-  const [formColor, setFormColor] = useState<"blue" | "green" | "red" | "yellow">("blue");
   const [formImg, setFormImg] = useState("");
   const [formLink, setFormLink] = useState("");
   const [imgError, setImgError] = useState("");
@@ -97,7 +94,6 @@ export default function EditTimelinePage() {
     setFormYearEnd(ev.y2 ?? "");
     setFormTitle(ev.t);
     setFormNotes(ev.n || "");
-    setFormColor(ev.col);
     setFormImg(ev.img || "");
     setFormLink(ev.link || "");
     setImgError("");
@@ -181,7 +177,6 @@ export default function EditTimelinePage() {
     setFormYearEnd("");
     setFormTitle("");
     setFormNotes("");
-    setFormColor("blue");
     setFormImg("");
     setFormLink("");
     setImgError("");
@@ -196,7 +191,6 @@ export default function EditTimelinePage() {
     setFormYearEnd(ev.y2 ?? "");
     setFormTitle(ev.t);
     setFormNotes(ev.n || "");
-    setFormColor(ev.col);
     setFormImg(ev.img || "");
     setFormLink(ev.link || "");
     setImgError("");
@@ -261,7 +255,6 @@ export default function EditTimelinePage() {
           y: yNum,
           t: formTitle.trim(),
           n: formNotes.trim(),
-          col: formColor,
           ...media,
         };
         if (hasEnd) next.y2 = yEndNum;
@@ -278,7 +271,6 @@ export default function EditTimelinePage() {
         ...(hasEnd ? { y2: yEndNum } : {}),
         t: formTitle.trim(),
         n: formNotes.trim(),
-        col: formColor,
         ...media,
       };
       updated = [...events, newEv];
@@ -297,9 +289,32 @@ export default function EditTimelinePage() {
   const handleAddCountry = async () => {
     const name = window.prompt("Nome del paese / categoria:");
     if (name?.trim()) {
-      const updatedRows = [...rows, { id: "r-" + Math.random().toString(36).slice(2, 8), name: name.trim() }];
+      const updatedRows = [
+        ...rows,
+        {
+          id: "r-" + Math.random().toString(36).slice(2, 8),
+          name: name.trim(),
+          col: TIMELINE_COLORS[rows.length % TIMELINE_COLORS.length],
+        },
+      ];
       await persistChanges(updatedRows, events);
     }
+  };
+
+  const handleShuffleColors = async () => {
+    if (rows.length === 0) return;
+
+    const colors = [...TIMELINE_COLORS];
+    for (let i = colors.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [colors[i], colors[j]] = [colors[j], colors[i]];
+    }
+
+    const updatedRows = rows.map((row, index) => ({
+      ...row,
+      col: colors[index % colors.length],
+    }));
+    await persistChanges(updatedRows, events);
   };
 
   const handleEditCountry = async (r: TimelineRow) => {
@@ -450,7 +465,7 @@ export default function EditTimelinePage() {
                     return (
                       <button
                         key={ev.id}
-                        className={`chip c-${ev.col}`}
+                        className={`chip c-${row.col}`}
                         style={{
                           left: `${x}px`,
                           top: `${6 + lane * LH}px`,
@@ -484,6 +499,12 @@ export default function EditTimelinePage() {
           </Link>
           <button onClick={() => openModalForNew()}>+ Evento</button>
           <button onClick={handleAddCountry}>+ Paese</button>
+          <button
+            onClick={handleShuffleColors}
+            title="Assegna casualmente i colori ai paesi"
+          >
+            Rimescola colori
+          </button>
 
           <div className="range-group" title="Mostra solo gli eventi compresi tra questi due anni">
             <span className="range-label">Anni</span>
@@ -621,22 +642,6 @@ export default function EditTimelinePage() {
             value={formLink}
             onChange={(e) => setFormLink(e.target.value)}
           />
-
-          <label>Colore evidenziatore</label>
-          <div className="swatches">
-            {COLORS.map(([colorKey, colorLabel]) => (
-              <label key={colorKey}>
-                <input
-                  type="radio"
-                  name="col"
-                  value={colorKey}
-                  checked={formColor === colorKey}
-                  onChange={() => setFormColor(colorKey)}
-                />
-                {colorLabel}
-              </label>
-            ))}
-          </div>
 
           <div className="row">
             <button type="submit" className="grow">

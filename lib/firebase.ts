@@ -1,5 +1,7 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getDatabase, ref, set, onValue, serverTimestamp } from "firebase/database";
+//<<<<<<< 
+immagini
 import {
   getAuth,
   onAuthStateChanged,
@@ -10,6 +12,10 @@ import {
   type User,
 } from "firebase/auth";
 import { TimelineRow, TimelineEvent, TimelineData } from "./initialData";
+//=======
+import { TimelineRow, TimelineEvent, TimelineData, normalizeTimelineData } from "./initialData";
+//>>>>>>> 
+main
 
 const getEnvConfig = () => ({
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
@@ -177,7 +183,7 @@ export function subscribeToFirebase(
       (snapshot) => {
         const data = snapshot.val();
         if (data && Array.isArray(data.rows) && Array.isArray(data.events)) {
-          onUpdate({ rows: data.rows, events: data.events });
+          onUpdate(normalizeTimelineData({ rows: data.rows, events: data.events }));
         }
       },
       (err) => {
