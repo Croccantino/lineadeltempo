@@ -91,7 +91,9 @@ export default function ClientTimelinePage() {
     ticks.push({ year: t, x: X(t) });
   }
 
-  const selectedCountryName = rows.find((r) => r.id === selectedEvent?.r)?.name || "";
+  const selectedRow = rows.find((r) => r.id === selectedEvent?.r);
+  const selectedCountryName = selectedRow?.name || "";
+  const selectedNoteColor = selectedRow?.col || "blue";
   const { src: selectedImg } = useResolvedImage(selectedEvent?.img);
   const selectedLink = selectedEvent ? sanitizeLink(selectedEvent.link || "") : "";
 
@@ -165,7 +167,7 @@ export default function ClientTimelinePage() {
                     return (
                       <button
                         key={ev.id}
-                        className={`chip c-${ev.col}`}
+                        className={`chip c-${row.col}`}
                         style={{ left: `${x}px`, top: `${6 + lane * LH}px`, width: `${barWidth}px` }}
                         onClick={() => setSelectedEventId(ev.id)}
                       >
@@ -240,7 +242,7 @@ export default function ClientTimelinePage() {
             if (e.target === e.currentTarget) setSelectedEventId(null);
           }}
         >
-          <article className={`note c-${selectedEvent.col}`}>
+          <article className={`note c-${selectedNoteColor}`}>
             <span className="note-tape" aria-hidden="true" />
 
             <div className="note-head">

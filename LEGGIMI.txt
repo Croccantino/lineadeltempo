@@ -38,8 +38,11 @@ sincronizzazione immagini.
 
 DATI
 ----
-timeline/main   righe, eventi e updatedAt
+timeline/main   righe (con colore per paese), eventi e updatedAt
 images/<uuid>   { data: "data:image/...;base64,...", type, size, createdAt }
+
+Il colore delle chip dipende dal paese (TimelineRow.col). Nell'editor il
+pulsante "Rimescola colori" ridistribuisce casualmente i colori tra i paesi.
 
 L'editor salva l'evento con img = "rtdb:<uuid>". La GitHub Action converte
 l'immagine in WebP e aggiorna l'evento a img = "/images/<hash>.webp".

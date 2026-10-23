@@ -1,6 +1,11 @@
+export type TimelineColor = "blue" | "green" | "red" | "yellow";
+
+export const TIMELINE_COLORS: TimelineColor[] = ["blue", "green", "red", "yellow"];
+
 export interface TimelineRow {
   id: string;
   name: string;
+  col: TimelineColor;
 }
 
 export interface TimelineEvent {
@@ -10,7 +15,6 @@ export interface TimelineEvent {
   y2?: number; // end year (optional): if > y the event spans a period
   t: string; // title
   n: string; // notes
-  col: "blue" | "green" | "red" | "yellow";
   img?: string; // photo URL or data URL (base64)
   link?: string; // external reference link
 }
@@ -20,12 +24,45 @@ export interface TimelineData {
   events: TimelineEvent[];
 }
 
+export function isTimelineColor(value: unknown): value is TimelineColor {
+  return typeof value === "string" && TIMELINE_COLORS.includes(value as TimelineColor);
+}
+
+type LegacyEvent = TimelineEvent & { col?: unknown };
+
+export function normalizeTimelineData(data: TimelineData): TimelineData {
+  const legacyEvents = data.events as LegacyEvent[];
+
+  const events = legacyEvents.map((event) => {
+    const copy: LegacyEvent = { ...event };
+    delete copy.col;
+    return copy;
+  });
+
+  const rows = data.rows.map((row, index) => {
+    const legacyColor = legacyEvents.find(
+      (event) => event.r === row.id && isTimelineColor(event.col)
+    )?.col;
+
+    return {
+      ...row,
+      col: isTimelineColor(row.col)
+        ? row.col
+        : isTimelineColor(legacyColor)
+          ? legacyColor
+          : TIMELINE_COLORS[index % TIMELINE_COLORS.length],
+    };
+  });
+
+  return { rows, events };
+}
+
 export const INITIAL_DATA: TimelineData = {
   rows: [
-    { id: "r-fr", name: "Francia" },
-    { id: "r-de", name: "Germania / SRI" },
-    { id: "r-uk", name: "Inghilterra" },
-    { id: "r-es", name: "Spagna / Paesi Bassi" },
+    { id: "r-fr", name: "Francia", col: "blue" },
+    { id: "r-de", name: "Germania / SRI", col: "red" },
+    { id: "r-uk", name: "Inghilterra", col: "green" },
+    { id: "r-es", name: "Spagna / Paesi Bassi", col: "yellow" },
   ],
   events: [
     {
@@ -34,7 +71,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1555,
       t: "Pace di Augusta",
       n: "Principio del 'Cuius regio, eius religio': i principi scelgono la religione del loro territorio.",
-      col: "blue",
     },
     {
       id: "e-2",
@@ -42,7 +78,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1562,
       t: "Massacro di Vassy",
       n: "Attacco agli ugonotti guidato dal duca di Guisa. Inizio ufficiale delle guerre di religione francesi.",
-      col: "red",
     },
     {
       id: "e-3",
@@ -50,7 +85,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1568,
       t: "Rivolta dei Paesi Bassi",
       n: "Inizio della guerra degli ottant'anni contro il dominio spagnolo di Filippo II.",
-      col: "yellow",
     },
     {
       id: "e-4",
@@ -58,7 +92,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1572,
       t: "San Bartolomeo",
       n: "Strage notturna di migliaia di ugonotti a Parigi in occasione delle nozze di Enrico di Navarra.",
-      col: "red",
     },
     {
       id: "e-5",
@@ -66,7 +99,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1588,
       t: "Invincibile Armata",
       n: "Filippo II di Spagna tenta di invadere l'Inghilterra elisabettiana ma la sua flotta viene distrutta.",
-      col: "green",
     },
     {
       id: "e-6",
@@ -74,7 +106,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1598,
       t: "Editto di Nantes",
       n: "Enrico IV concede agli ugonotti la libertà di coscienza e parziali diritti di culto e piazzeforti.",
-      col: "blue",
     },
     {
       id: "e-7",
@@ -82,7 +113,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1605,
       t: "Congiura delle Polveri",
       n: "Complotto cattolico guidato da Guy Fawkes per far saltare il Parlamento inglese.",
-      col: "yellow",
     },
     {
       id: "e-8",
@@ -90,7 +120,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1618,
       t: "Defenestrazione di Praga",
       n: "Rappresentanti imperiali gettati dal castello di Praga. Scintilla della Guerra dei Trent'anni.",
-      col: "red",
     },
     {
       id: "e-9",
@@ -98,7 +127,6 @@ export const INITIAL_DATA: TimelineData = {
       y: 1648,
       t: "Pace di Vestfalia",
       n: "Fine della Guerra dei Trent'anni. Riconoscimento del calvinismo e nuovo equilibrio europeo.",
-      col: "green",
     },
   ],
 };

@@ -269,7 +269,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 .chip {
   position: absolute;
-  width: 140px;
   height: 48px;
   text-align: left;
   border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
@@ -385,28 +384,6 @@ textarea {
   background: #fde8e8;
   border-color: #c23b3b;
 }
-
-.swatches {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.swatches label {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ink);
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.swatches input {
-  width: auto;
-  cursor: pointer;
-}
-
 
 /* Badges e Navigazione Modifica / Client */
 .badge-client {
