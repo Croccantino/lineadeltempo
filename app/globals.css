@@ -38,7 +38,7 @@
     --blue: #87674f;
     --green: #6c7653;
     --red: #a95745;
-    --yellow: #967435;
+    --yellow: #85652f;
     --accent: #8a6331;
     --accent-2: #76552d;
     --shadow-md: 0 8px 22px rgba(0, 0, 0, 0.3);
@@ -59,7 +59,7 @@
   --blue: #87674f;
   --green: #6c7653;
   --red: #a95745;
-  --yellow: #967435;
+  --yellow: #85652f;
   --accent: #8a6331;
   --accent-2: #76552d;
   --shadow-md: 0 8px 22px rgba(0, 0, 0, 0.3);
@@ -330,6 +330,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   padding: 0 22px;
   margin: 8px 0;
   max-width: 1320px;
+}
+
+.firebase-banner + .hint {
+  display: none;
 }
 
 dialog {
