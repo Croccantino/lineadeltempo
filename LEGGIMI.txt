@@ -81,6 +81,24 @@ selezionato "GitHub Actions".
 Il basePath /lineadeltempo è impostato nella workflow. I percorsi delle immagini
 locali vengono prefissati a runtime con lo stesso basePath.
 
+AUTENTICAZIONE
+--------------
+Login e Signup usano Firebase Authentication (email/password). Per attivarli:
+
+1. Console Firebase -> Authentication -> Sign-in method.
+2. Abilita il provider "Email/Password".
+3. In Authentication -> Settings -> Authorized domains verifica localhost e
+   aggiungi il dominio GitHub Pages (es. croccantino.github.io).
+
+Non servono nuove variabili: viene usata NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN.
+L'editor /modifica è protetto lato client: senza sessione mostra una schermata
+di accesso e rimanda al login nella pagina principale.
+
+La protezione di /modifica è solo un filtro di interfaccia: le regole RTDB
+restano aperte, quindi chi conosce l'URL del database può ancora scrivere
+direttamente. Per una sicurezza reale vanno aggiunte regole RTDB con auth e va
+adattato scripts/sync-images.mjs, che oggi usa REST anonimo.
+
 REGOLE FIREBASE
 ---------------
 database.rules.json è attualmente aperto in lettura e scrittura su timeline/main
