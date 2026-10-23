@@ -176,17 +176,21 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   border-right: 2px solid color-mix(in srgb, var(--accent) 48%, var(--border));
   display: flex;
   align-items: center;
+  gap: 4px;
+  padding-right: 6px;
 }
 
 .lab-btn {
   border: 0;
   background: transparent;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
   height: 100%;
   justify-content: center;
   text-align: center;
   font: 700 15px var(--font-inter), "Inter", system-ui, sans-serif;
-  padding: 10px 14px;
+  padding: 10px 10px;
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -194,6 +198,30 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   border-radius: 0;
   box-shadow: none;
   color: var(--ink);
+}
+
+.lab-delete {
+  flex: 0 0 auto;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 7px;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+
+.lab-delete:hover {
+  background: #fde8e8;
+  border-color: #c23b3b;
+  color: #c23b3b;
+  transform: none;
 }
 
 .lab-btn:hover {

@@ -318,21 +318,19 @@ export default function EditTimelinePage() {
   };
 
   const handleEditCountry = async (r: TimelineRow) => {
-    const action = window.prompt(
-      `Modifica "${r.name}".\nInserisci il nuovo nome oppure lascia vuoto e premi OK per eliminare il paese:`,
-      r.name
-    );
+    const action = window.prompt(`Rinomina "${r.name}":`, r.name);
     if (action === null) return;
-    if (action.trim() === "") {
-      if (window.confirm(`Sei sicuro di voler eliminare il paese "${r.name}" e tutti i suoi eventi?`)) {
-        const updatedRows = rows.filter((row) => row.id !== r.id);
-        const updatedEvents = events.filter((e) => e.r !== r.id);
-        await persistChanges(updatedRows, updatedEvents);
-      }
-    } else {
-      const updatedRows = rows.map((row) => (row.id === r.id ? { ...row, name: action.trim() } : row));
-      await persistChanges(updatedRows, events);
-    }
+    const name = action.trim();
+    if (!name || name === r.name) return;
+    const updatedRows = rows.map((row) => (row.id === r.id ? { ...row, name } : row));
+    await persistChanges(updatedRows, events);
+  };
+
+  const handleDeleteCountry = async (r: TimelineRow) => {
+    if (!window.confirm(`Eliminare il paese "${r.name}" e tutti i suoi eventi?`)) return;
+    const updatedRows = rows.filter((row) => row.id !== r.id);
+    const updatedEvents = events.filter((e) => e.r !== r.id);
+    await persistChanges(updatedRows, updatedEvents);
   };
 
   const ticks: Array<{ year: number; x: number }> = [];
@@ -438,10 +436,19 @@ export default function EditTimelinePage() {
                 <div className="lab">
                   <button
                     className="lab-btn"
-                    title="Clicca per rinominare o eliminare"
+                    title="Clicca per rinominare"
                     onClick={() => handleEditCountry(row)}
                   >
                     {row.name} ✏️
+                  </button>
+                  <button
+                    type="button"
+                    className="lab-delete"
+                    title={`Elimina ${row.name}`}
+                    aria-label={`Elimina il paese ${row.name}`}
+                    onClick={() => handleDeleteCountry(row)}
+                  >
+                    🗑
                   </button>
                 </div>
                 <div

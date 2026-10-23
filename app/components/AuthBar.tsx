@@ -178,9 +178,7 @@ export default function AuthBar() {
 
   return (
     <div className="auth-area">
-      {loading ? (
-        <span className="auth-loading">Verifica sessione…</span>
-      ) : user ? (
+      {user ? (
         <div className="auth-session">
           <span className="auth-user" title={user.email || ""}>
             {user.email}
@@ -195,7 +193,7 @@ export default function AuthBar() {
           </button>
         </div>
       ) : (
-        <div className="auth-actions">
+        <div className="auth-actions" aria-busy={loading}>
           <button type="button" className="btn-login" onClick={() => openDialog("login")}>
             Login
           </button>
