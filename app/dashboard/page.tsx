@@ -132,7 +132,7 @@ export default function FeedbackDashboardPage() {
                     <span aria-hidden="true">{RATING_FACES[entry.rating]}</span>
                     <strong>{entry.rating}/5</strong>
                   </div>
-                  <p>{entry.message}</p>
+                  {entry.message && <p>{entry.message}</p>}
                   {isAdmin && (
                     <button
                       type="button"

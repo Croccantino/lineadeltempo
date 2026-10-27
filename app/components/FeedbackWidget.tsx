@@ -39,10 +39,6 @@ export default function FeedbackWidget() {
       setError("Scegli una valutazione.");
       return;
     }
-    if (!cleanMessage) {
-      setError("Scrivi un breve commento prima di inviare.");
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -143,7 +139,7 @@ export default function FeedbackWidget() {
 
               {rating !== null && (
                 <div className="feedback-comment">
-                  <label htmlFor="feedback-message">Vuoi raccontarci qualcosa?</label>
+                  <label htmlFor="feedback-message">Commento (facoltativo)</label>
                   <textarea
                     id="feedback-message"
                     value={message}
@@ -151,7 +147,6 @@ export default function FeedbackWidget() {
                     placeholder="Scrivi qui il tuo commento…"
                     maxLength={1200}
                     rows={4}
-                    required
                     autoFocus
                   />
                   <span className="feedback-char-count">{message.length}/1200</span>
