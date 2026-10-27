@@ -9,6 +9,25 @@
     "images": {
       ".read": true,
       ".write": true
+    },
+    "feedback": {
+      ".read": true,
+      "$feedbackId": {
+        ".write": "(!data.exists() && newData.exists()) || (auth != null && auth.token.email === 'francesco.zompi29@gmail.com')",
+        ".validate": "newData.hasChildren(['rating', 'createdAt']) && newData.getChildrenCount() >= 2 && newData.getChildrenCount() <= 3 && newData.child('rating').isNumber() && newData.child('rating').val() >= 1 && newData.child('rating').val() <= 5 && newData.child('rating').val() % 1 === 0 && (!newData.child('message').exists() || (newData.child('message').isString() && newData.child('message').val().length <= 1200)) && newData.child('createdAt').isNumber() && newData.child('createdAt').val() <= now",
+        "rating": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5 && newData.val() % 1 === 0"
+        },
+        "message": {
+          ".validate": "newData.isString() && newData.val().length <= 1200"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
     }
   }
 }

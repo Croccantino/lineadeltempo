@@ -30,11 +30,36 @@ VARIABILI D'AMBIENTE
 --------------------
 NEXT_PUBLIC_FIREBASE_*  configurazione web Firebase (incorporata nel build)
 NEXT_PUBLIC_BASE_PATH   /lineadeltempo per GitHub Pages, vuoto in locale
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY chiave pubblica reCAPTCHA v3 per Firebase App Check
 FIREBASE_DATABASE_URL   URL RTDB per lo script di sincronizzazione
 
 La workflow Pages legge le variabili NEXT_PUBLIC_FIREBASE_* dalle Repository
 variables di GitHub. Il secret FIREBASE_DATABASE_URL è usato dalla workflow di
 sincronizzazione immagini.
+
+FEEDBACK
+--------
+Il modulo invia la valutazione e i suggerimenti tramite la callable Firebase
+Function submitFeedback nella regione europe-west1; non apre un programma email.
+Per abilitarlo:
+
+1. In Firebase App Check registra l'app web con reCAPTCHA v3 e autorizza
+   croccantino.github.io e localhost. Aggiungi la chiave pubblica come variabile
+   NEXT_PUBLIC_RECAPTCHA_SITE_KEY in GitHub Actions -> Settings -> Secrets and
+   variables -> Actions -> Variables (e in .env.local per lo sviluppo).
+2. Verifica un dominio mittente in Resend.
+3. Configura i secret Functions nel terminale, inserendo i valori quando
+   richiesto (non nel codice):
+   firebase functions:secrets:set RESEND_API_KEY
+   firebase functions:secrets:set FEEDBACK_FROM_EMAIL
+   firebase functions:secrets:set FEEDBACK_TO_EMAIL
+   FEEDBACK_FROM_EMAIL deve essere il mittente verificato in Resend, nel formato
+   "Nome <indirizzo@dominio>"; FEEDBACK_TO_EMAIL riceve le valutazioni.
+4. Distribuisci la function con Firebase CLI: firebase deploy --only
+   functions:submitFeedback --project timeline-cb4b2
+
+L'uso di Cloud Functions richiede il piano Firebase Blaze. La chiave Resend è
+conservata solo nei secret della function e non viene inclusa nel sito.
 
 DATI
 ----

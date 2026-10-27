@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Caveat } from "next/font/google";
+import FeedbackWidget from "./components/FeedbackWidget";
 import "./globals.css";
 import FeedbackButton from "./components/FeedbackButton";
 
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="it" className={`${inter.variable} ${caveat.variable}`}>
       <body>
         {children}
+        <FeedbackWidget />
         <footer className="site-footer">
           Realizzato da <strong>Francesco Zompì</strong> · Presentato da{" "}
           <strong>Alessandro Rizzo</strong>

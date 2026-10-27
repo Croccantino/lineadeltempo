@@ -1,5 +1,13 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getDatabase, ref, set, onValue, serverTimestamp } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  set,
+  onValue,
+  serverTimestamp,
+  push,
+  remove,
+} from "firebase/database";
 import {
   getAuth,
   onAuthStateChanged,
@@ -33,7 +41,7 @@ export const isAuthActive = () => {
   return Boolean(conf.apiKey && conf.authDomain && conf.projectId);
 };
 
-const getFirebaseApp = (): FirebaseApp | null => {
+export const getFirebaseApp = (): FirebaseApp | null => {
   if (!isFirebaseActive()) return null;
   if (firebaseApp) return firebaseApp;
   try {
@@ -161,6 +169,101 @@ export async function syncToFirebase(
   } catch (err) {
     console.error("Errore salvataggio Firebase:", err);
     return false;
+  }
+}
+
+export interface FeedbackEntry {
+  id: string;
+  rating: number;
+  message?: string;
+  createdAt: number;
+}
+
+const FEEDBACK_ADMIN_EMAIL = "francesco.zompi29@gmail.com";
+
+export async function submitFeedback(rating: number, message = ""): Promise<void> {
+  const db = getDbInstance();
+  if (!db) throw new Error("Firebase non configurato. Controlla le variabili d'ambiente.");
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    throw new Error("La valutazione deve essere compresa tra 1 e 5.");
+  }
+
+  const cleanMessage = message.trim();
+  if (cleanMessage.length > 1200) {
+    throw new Error("Il commento non può superare i 1200 caratteri.");
+  }
+
+  const feedbackRef = push(ref(db, "feedback"));
+  if (!feedbackRef.key) throw new Error("Impossibile creare un identificativo per la recensione.");
+
+  await set(feedbackRef, {
+    rating,
+    createdAt: serverTimestamp(),
+    ...(cleanMessage ? { message: cleanMessage } : {}),
+  });
+}
+
+export async function deleteFeedback(id: string): Promise<void> {
+  const auth = getAuthInstance();
+  if (auth?.currentUser?.email !== FEEDBACK_ADMIN_EMAIL) {
+    throw new Error("Solo l'amministratore può eliminare le recensioni.");
+  }
+
+  const db = getDbInstance();
+  if (!db) throw new Error("Firebase non configurato. Controlla le variabili d'ambiente.");
+  await remove(ref(db, `feedback/${id}`));
+}
+
+export function subscribeToFeedback(
+  onUpdate: (entries: FeedbackEntry[]) => void,
+  onError?: (error: unknown) => void
+): () => void {
+  const db = getDbInstance();
+  if (!db) {
+    onError?.(new Error("Firebase non configurato. Controlla le variabili d'ambiente."));
+    return () => {};
+  }
+
+  try {
+    return onValue(
+      ref(db, "feedback"),
+      (snapshot) => {
+        const data = snapshot.val() as Record<string, unknown> | null;
+        const entries = Object.entries(data ?? {}).flatMap(([id, value]) => {
+          if (typeof value !== "object" || value === null) return [];
+
+          const item = value as Record<string, unknown>;
+          if (
+            typeof item.rating !== "number" ||
+            !Number.isInteger(item.rating) ||
+            item.rating < 1 ||
+            item.rating > 5 ||
+            (item.message !== undefined && typeof item.message !== "string") ||
+            typeof item.createdAt !== "number" ||
+            !Number.isFinite(new Date(item.createdAt).getTime())
+          ) {
+            return [];
+          }
+
+          return [{
+            id,
+            rating: item.rating,
+            createdAt: item.createdAt,
+            ...(typeof item.message === "string" ? { message: item.message } : {}),
+          }];
+        });
+
+        onUpdate(entries.sort((a, b) => b.createdAt - a.createdAt));
+      },
+      (err) => {
+        console.warn("Errore lettura feedback Firebase:", err);
+        onError?.(err);
+      }
+    );
+  } catch (err) {
+    console.warn("Impossibile connettere il listener dei feedback:", err);
+    onError?.(err);
+    return () => {};
   }
 }
 
