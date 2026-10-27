@@ -41,7 +41,7 @@ export const isAuthActive = () => {
   return Boolean(conf.apiKey && conf.authDomain && conf.projectId);
 };
 
-const getFirebaseApp = (): FirebaseApp | null => {
+export const getFirebaseApp = (): FirebaseApp | null => {
   if (!isFirebaseActive()) return null;
   if (firebaseApp) return firebaseApp;
   try {
