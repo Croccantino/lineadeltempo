@@ -238,6 +238,9 @@ export default function ClientTimelinePage() {
           <Link href="/modifica" className="btn-edit-nav">
             ✏️ Modifica
           </Link>
+          <Link href="/dashboard" className="btn-edit-nav">
+            📬 Feedback
+          </Link>
         </div>
         <AuthBar />
       </div>

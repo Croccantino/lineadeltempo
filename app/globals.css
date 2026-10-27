@@ -1160,6 +1160,212 @@ button:disabled {
   transform: translateY(0);
 }
 
+.dashboard-page {
+  width: min(100% - 32px, 980px);
+  margin: 0 auto;
+  padding: 32px 0 96px;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-header h1 {
+  flex: none;
+  font-size: 28px;
+}
+
+.dashboard-eyebrow,
+.dashboard-intro,
+.dashboard-list-heading p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.dashboard-eyebrow {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard-intro {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.dashboard-content {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.dashboard-panel,
+.dashboard-summary,
+.dashboard-list {
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-panel {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.dashboard-access {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.dashboard-access h2,
+.dashboard-list-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.dashboard-access p {
+  max-width: 440px;
+  margin: 0;
+  color: var(--muted);
+}
+
+.dashboard-icon,
+.dashboard-empty > span {
+  font-size: 30px;
+}
+
+.dashboard-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+}
+
+.dashboard-summary > div {
+  display: grid;
+  gap: 4px;
+}
+
+.dashboard-stat-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.dashboard-summary strong {
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.dashboard-stat-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent) 15%, var(--card));
+  border-radius: 50%;
+  font-size: 21px;
+}
+
+.dashboard-list {
+  overflow: hidden;
+}
+
+.dashboard-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-list-heading p {
+  margin-top: 3px;
+  font-size: 13px;
+}
+
+.dashboard-message,
+.dashboard-empty {
+  margin: 0;
+  padding: 36px 22px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.dashboard-error {
+  color: #a32929;
+}
+
+.dashboard-empty > span {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.dashboard-empty h3 {
+  margin: 0 0 5px;
+  color: var(--ink);
+  font-size: 17px;
+}
+
+.dashboard-empty p {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.feedback-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feedback-card {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.feedback-card:last-child {
+  border-bottom: 0;
+}
+
+.feedback-card-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feedback-card-meta time,
+.feedback-sender {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.feedback-sender {
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.feedback-card > p {
+  margin: 12px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 640px) {
   .site-footer {
     left: 8px;
@@ -1171,5 +1377,38 @@ button:disabled {
   .feedback-button {
     right: calc(8px + env(safe-area-inset-right, 0px));
     bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .dashboard-page {
+    width: min(100% - 20px, 980px);
+    padding-top: 14px;
+  }
+
+  .dashboard-header,
+  .dashboard-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-header {
+    padding: 18px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 23px;
+  }
+
+  .dashboard-list-heading {
+    padding: 16px;
+  }
+
+  .feedback-card {
+    padding: 16px;
+  }
+
+  .feedback-card-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
   }
 }

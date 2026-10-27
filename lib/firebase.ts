@@ -164,6 +164,64 @@ export async function syncToFirebase(
   }
 }
 
+export interface FeedbackEntry {
+  id: string;
+  message: string;
+  createdAt: number;
+  email?: string;
+  name?: string;
+}
+
+export function subscribeToFeedback(
+  onUpdate: (entries: FeedbackEntry[]) => void,
+  onError?: (error: unknown) => void
+): () => void {
+  const db = getDbInstance();
+  if (!db) {
+    onError?.(new Error("Firebase non configurato. Controlla le variabili d'ambiente."));
+    return () => {};
+  }
+
+  try {
+    return onValue(
+      ref(db, "feedback"),
+      (snapshot) => {
+        const data = snapshot.val() as Record<string, unknown> | null;
+        const entries = Object.entries(data ?? {}).flatMap(([id, value]) => {
+          if (typeof value !== "object" || value === null) return [];
+
+          const item = value as Record<string, unknown>;
+          if (
+            typeof item.message !== "string" ||
+            typeof item.createdAt !== "number" ||
+            !Number.isFinite(new Date(item.createdAt).getTime())
+          ) {
+            return [];
+          }
+
+          return [{
+            id,
+            message: item.message,
+            createdAt: item.createdAt,
+            ...(typeof item.email === "string" ? { email: item.email } : {}),
+            ...(typeof item.name === "string" ? { name: item.name } : {}),
+          }];
+        });
+
+        onUpdate(entries.sort((a, b) => b.createdAt - a.createdAt));
+      },
+      (err) => {
+        console.warn("Errore lettura feedback Firebase:", err);
+        onError?.(err);
+      }
+    );
+  } catch (err) {
+    console.warn("Impossibile connettere il listener dei feedback:", err);
+    onError?.(err);
+    return () => {};
+  }
+}
+
 export function subscribeToFirebase(
   onUpdate: (data: TimelineData) => void,
   onError?: (error: unknown) => void
