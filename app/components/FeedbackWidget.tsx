@@ -2,7 +2,12 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { submitFeedback } from "../../lib/firebase";
+import {
+  initializeAppCheck,
+  ReCaptchaV3Provider,
+} from "firebase/app-check";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFirebaseApp, submitFeedback } from "../../lib/firebase";
 
 const RATINGS = [
   { value: 1, face: "😞", label: "Per niente" },
@@ -12,6 +17,33 @@ const RATINGS = [
   { value: 5, face: "😄", label: "Molto bene" },
 ] as const;
 
+let appCheckInitialized = false;
+
+function getFeedbackEmailCallable() {
+  const app = getFirebaseApp();
+  if (!app) {
+    throw new Error("Firebase non è configurato per l’invio dei feedback.");
+  }
+
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  if (!siteKey) {
+    throw new Error("La protezione anti-spam dei feedback non è configurata.");
+  }
+
+  if (!appCheckInitialized) {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(siteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+    appCheckInitialized = true;
+  }
+
+  return httpsCallable<
+    { rating: number; suggestions: string },
+    { success: boolean }
+  >(getFunctions(app, "europe-west1"), "submitFeedback");
+}
+
 export default function FeedbackWidget() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [rating, setRating] = useState<number | null>(null);
@@ -19,11 +51,13 @@ export default function FeedbackWidget() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [emailNotice, setEmailNotice] = useState("");
 
   const openDialog = () => {
     setRating(null);
     setMessage("");
     setError("");
+    setEmailNotice("");
     setSubmitted(false);
     dialogRef.current?.showModal();
   };
@@ -44,6 +78,18 @@ export default function FeedbackWidget() {
     try {
       await submitFeedback(rating, cleanMessage);
       setSubmitted(true);
+      try {
+        await getFeedbackEmailCallable()({
+          rating,
+          suggestions: cleanMessage,
+        });
+        setEmailNotice("La recensione è stata pubblicata e notificata via email.");
+      } catch (emailError) {
+        console.error("Notifica email del feedback non riuscita:", emailError);
+        setEmailNotice(
+          "La recensione è stata pubblicata, ma non è stato possibile inviare la notifica email.",
+        );
+      }
     } catch (submitError) {
       console.error("Invio feedback non riuscito:", submitError);
       const errorCode =
@@ -105,7 +151,7 @@ export default function FeedbackWidget() {
             <div className="feedback-success" role="status">
               <span aria-hidden="true">💛</span>
               <h3>Grazie per la recensione!</h3>
-              <p>Il tuo feedback è stato pubblicato.</p>
+              <p>{emailNotice || "Il tuo feedback è stato pubblicato."}</p>
               <div className="feedback-success-actions">
                 <Link href="/dashboard/" className="btn-edit-nav" onClick={closeDialog}>
                   Leggi tutte le recensioni
