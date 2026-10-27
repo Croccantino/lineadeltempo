@@ -29,6 +29,9 @@ export default function FeedbackDashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isAdmin = user?.email === ADMIN_EMAIL;
+  const successPercentage = entries.length
+    ? (entries.reduce((total, entry) => total + entry.rating, 0) / (entries.length * 5)) * 100
+    : null;
 
   useEffect(() => {
     setLoading(true);
@@ -80,11 +83,19 @@ export default function FeedbackDashboardPage() {
 
       <section className="dashboard-content">
         <div className="dashboard-summary">
-          <div>
+          <div className="dashboard-summary-stat">
             <span className="dashboard-stat-label">Recensioni pubblicate</span>
             <strong>{entries.length}</strong>
           </div>
-          <span className="dashboard-stat-icon" aria-hidden="true">✉</span>
+          <div className="dashboard-summary-stat">
+            <span className="dashboard-stat-label">Percentuale media</span>
+            <strong>
+              {successPercentage === null
+                ? "—"
+                : `${successPercentage.toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
+            </strong>
+          </div>
+          <span className="dashboard-stat-icon" aria-hidden="true">★</span>
         </div>
 
         <div className="dashboard-list">

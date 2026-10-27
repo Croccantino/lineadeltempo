@@ -1429,13 +1429,24 @@ button:disabled {
 .dashboard-summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 28px;
   padding: 18px 22px;
 }
 
-.dashboard-summary > div {
+.dashboard-summary-stat {
   display: grid;
   gap: 4px;
+}
+
+.dashboard-summary-stat + .dashboard-summary-stat {
+  padding-left: 28px;
+  border-left: 1px solid var(--border);
+}
+
+.dashboard-summary-stat strong {
+  font-variant-numeric: tabular-nums;
 }
 
 .dashboard-stat-label {
@@ -1614,6 +1625,19 @@ button:disabled {
 
   .dashboard-list-heading {
     padding: 16px;
+  }
+
+  .dashboard-summary {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .dashboard-summary-stat + .dashboard-summary-stat {
+    padding-left: 16px;
+  }
+
+  .dashboard-stat-icon {
+    margin-left: auto;
   }
 
   .feedback-card {
