@@ -175,13 +175,13 @@ export async function syncToFirebase(
 export interface FeedbackEntry {
   id: string;
   rating: number;
-  message: string;
+  message?: string;
   createdAt: number;
 }
 
 const FEEDBACK_ADMIN_EMAIL = "francesco.zompi29@gmail.com";
 
-export async function submitFeedback(rating: number, message: string): Promise<void> {
+export async function submitFeedback(rating: number, message = ""): Promise<void> {
   const db = getDbInstance();
   if (!db) throw new Error("Firebase non configurato. Controlla le variabili d'ambiente.");
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
@@ -189,8 +189,8 @@ export async function submitFeedback(rating: number, message: string): Promise<v
   }
 
   const cleanMessage = message.trim();
-  if (!cleanMessage || cleanMessage.length > 1200) {
-    throw new Error("Il commento deve contenere da 1 a 1200 caratteri.");
+  if (cleanMessage.length > 1200) {
+    throw new Error("Il commento non può superare i 1200 caratteri.");
   }
 
   const feedbackRef = push(ref(db, "feedback"));
@@ -198,8 +198,8 @@ export async function submitFeedback(rating: number, message: string): Promise<v
 
   await set(feedbackRef, {
     rating,
-    message: cleanMessage,
     createdAt: serverTimestamp(),
+    ...(cleanMessage ? { message: cleanMessage } : {}),
   });
 }
 
@@ -238,7 +238,7 @@ export function subscribeToFeedback(
             !Number.isInteger(item.rating) ||
             item.rating < 1 ||
             item.rating > 5 ||
-            typeof item.message !== "string" ||
+            (item.message !== undefined && typeof item.message !== "string") ||
             typeof item.createdAt !== "number" ||
             !Number.isFinite(new Date(item.createdAt).getTime())
           ) {
@@ -248,8 +248,8 @@ export function subscribeToFeedback(
           return [{
             id,
             rating: item.rating,
-            message: item.message,
             createdAt: item.createdAt,
+            ...(typeof item.message === "string" ? { message: item.message } : {}),
           }];
         });
 
