@@ -9,6 +9,10 @@
     "images": {
       ".read": true,
       ".write": true
+    },
+    "feedback": {
+      ".read": "auth != null && auth.token.email === 'francesco.zompi29@gmail.com'",
+      ".write": false
     }
   }
 }
