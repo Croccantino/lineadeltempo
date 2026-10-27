@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Caveat } from "next/font/google";
+import FeedbackWidget from "./components/FeedbackWidget";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,12 +29,7 @@ export default function RootLayout({
     <html lang="it" className={`${inter.variable} ${caveat.variable}`}>
       <body>
         {children}
-        <a
-          className="feedback-button"
-          href="mailto:francesco.zompi29@gmail.com?subject=Feedback%20-%20Linea%20del%20Tempo"
-        >
-          ✉ Feedback
-        </a>
+        <FeedbackWidget />
         <footer className="site-footer">
           Realizzato da <strong>Francesco Zompì</strong> · Presentato da{" "}
           <strong>Alessandro Rizzo</strong>

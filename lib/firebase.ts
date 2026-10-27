@@ -1,5 +1,13 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getDatabase, ref, set, onValue, serverTimestamp } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  set,
+  onValue,
+  serverTimestamp,
+  push,
+  remove,
+} from "firebase/database";
 import {
   getAuth,
   onAuthStateChanged,
@@ -166,10 +174,44 @@ export async function syncToFirebase(
 
 export interface FeedbackEntry {
   id: string;
+  rating: number;
   message: string;
   createdAt: number;
-  email?: string;
-  name?: string;
+}
+
+const FEEDBACK_ADMIN_EMAIL = "francesco.zompi29@gmail.com";
+
+export async function submitFeedback(rating: number, message: string): Promise<void> {
+  const db = getDbInstance();
+  if (!db) throw new Error("Firebase non configurato. Controlla le variabili d'ambiente.");
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    throw new Error("La valutazione deve essere compresa tra 1 e 5.");
+  }
+
+  const cleanMessage = message.trim();
+  if (!cleanMessage || cleanMessage.length > 1200) {
+    throw new Error("Il commento deve contenere da 1 a 1200 caratteri.");
+  }
+
+  const feedbackRef = push(ref(db, "feedback"));
+  if (!feedbackRef.key) throw new Error("Impossibile creare un identificativo per la recensione.");
+
+  await set(feedbackRef, {
+    rating,
+    message: cleanMessage,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function deleteFeedback(id: string): Promise<void> {
+  const auth = getAuthInstance();
+  if (auth?.currentUser?.email !== FEEDBACK_ADMIN_EMAIL) {
+    throw new Error("Solo l'amministratore può eliminare le recensioni.");
+  }
+
+  const db = getDbInstance();
+  if (!db) throw new Error("Firebase non configurato. Controlla le variabili d'ambiente.");
+  await remove(ref(db, `feedback/${id}`));
 }
 
 export function subscribeToFeedback(
@@ -192,6 +234,10 @@ export function subscribeToFeedback(
 
           const item = value as Record<string, unknown>;
           if (
+            typeof item.rating !== "number" ||
+            !Number.isInteger(item.rating) ||
+            item.rating < 1 ||
+            item.rating > 5 ||
             typeof item.message !== "string" ||
             typeof item.createdAt !== "number" ||
             !Number.isFinite(new Date(item.createdAt).getTime())
@@ -201,10 +247,9 @@ export function subscribeToFeedback(
 
           return [{
             id,
+            rating: item.rating,
             message: item.message,
             createdAt: item.createdAt,
-            ...(typeof item.email === "string" ? { email: item.email } : {}),
-            ...(typeof item.name === "string" ? { name: item.name } : {}),
           }];
         });
 
