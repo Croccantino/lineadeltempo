@@ -7,6 +7,7 @@ import {
   TimelineRow,
   TimelineEvent,
   getEventRowIds,
+  normalizeTimelineData,
 } from "../lib/initialData";
 import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
 import { getYouTubeId, sanitizeLink, youtubeEmbedUrl } from "../lib/media";
@@ -49,8 +50,9 @@ export default function ClientTimelinePage() {
     }
 
     const unsubscribe = subscribeToFirebase((data) => {
-      setRows(data.rows);
-      setEvents(data.events);
+      const normalized = normalizeTimelineData({ rows: data.rows, events: data.events });
+      setRows(normalized.rows);
+      setEvents(normalized.events);
       setFirebaseConnected(true);
       setFirebaseError("");
     }, (error) => {
