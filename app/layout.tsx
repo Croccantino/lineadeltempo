@@ -27,6 +27,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" className={`${inter.variable} ${caveat.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://timeline-cb4b2-default-rtdb.europe-west1.firebasedatabase.app" />
+        <link rel="preconnect" href="https://timeline-cb4b2.firebaseapp.com" />
+        <link rel="dns-prefetch" href="https://timeline-cb4b2-default-rtdb.europe-west1.firebasedatabase.app" />
+      </head>
       <body>
         {children}
         <FeedbackWidget />

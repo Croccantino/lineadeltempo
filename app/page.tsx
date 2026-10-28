@@ -19,8 +19,28 @@ const LH = 54;
 const PAD = 14;
 
 export default function ClientTimelinePage() {
-  const [rows, setRows] = useState<TimelineRow[]>(INITIAL_DATA.rows);
-  const [events, setEvents] = useState<TimelineEvent[]>(INITIAL_DATA.events);
+  const [rows, setRows] = useState<TimelineRow[]>(() => {
+    if (typeof window === "undefined") return INITIAL_DATA.rows;
+    try {
+      const cached = window.localStorage.getItem("timeline-cache");
+      if (cached) {
+        const parsed = JSON.parse(cached) as { rows?: unknown };
+        if (Array.isArray(parsed.rows)) return parsed.rows as TimelineRow[];
+      }
+    } catch {}
+    return INITIAL_DATA.rows;
+  });
+  const [events, setEvents] = useState<TimelineEvent[]>(() => {
+    if (typeof window === "undefined") return INITIAL_DATA.events;
+    try {
+      const cached = window.localStorage.getItem("timeline-cache");
+      if (cached) {
+        const parsed = JSON.parse(cached) as { events?: unknown };
+        if (Array.isArray(parsed.events)) return parsed.events as TimelineEvent[];
+      }
+    } catch {}
+    return INITIAL_DATA.events;
+  });
   const [ppy, setPpy] = useState<number>(10);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [firebaseConnected, setFirebaseConnected] = useState<boolean>(false);
@@ -55,6 +75,12 @@ export default function ClientTimelinePage() {
       setEvents(normalized.events);
       setFirebaseConnected(true);
       setFirebaseError("");
+      try {
+        window.localStorage.setItem(
+          "timeline-cache",
+          JSON.stringify({ rows: normalized.rows, events: normalized.events })
+        );
+      } catch {}
     }, (error) => {
       console.error("Caricamento timeline da Firebase non riuscito:", error);
       setFirebaseConnected(false);
