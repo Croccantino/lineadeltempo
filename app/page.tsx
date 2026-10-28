@@ -23,6 +23,7 @@ export default function ClientTimelinePage() {
   const [ppy, setPpy] = useState<number>(10);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [firebaseConnected, setFirebaseConnected] = useState<boolean>(false);
+  const [firebaseError, setFirebaseError] = useState("");
   const selectedEvent = selectedEventId
     ? events.find((event) => event.id === selectedEventId) ?? null
     : null;
@@ -43,12 +44,19 @@ export default function ClientTimelinePage() {
   }, [selectedEvent]);
 
   useEffect(() => {
-    setFirebaseConnected(isFirebaseActive());
+    if (!isFirebaseActive()) {
+      setFirebaseError("Configurazione Firebase assente: vengono mostrati i dati locali.");
+    }
 
     const unsubscribe = subscribeToFirebase((data) => {
       setRows(data.rows);
       setEvents(data.events);
       setFirebaseConnected(true);
+      setFirebaseError("");
+    }, (error) => {
+      console.error("Caricamento timeline da Firebase non riuscito:", error);
+      setFirebaseConnected(false);
+      setFirebaseError("Firebase non raggiungibile: vengono mostrati i dati locali.");
     });
 
     return () => unsubscribe();
@@ -115,12 +123,16 @@ export default function ClientTimelinePage() {
             <span className="badge-client">📖 Vista Client (Lettura)</span>
             {firebaseConnected ? (
               <span className="badge-firebase">🟢 Cloud Firebase Sincronizzato</span>
+            ) : firebaseError ? (
+              <span className="badge-local">⚠️ Dati locali</span>
             ) : (
-              <span className="badge-local">💾 Dati Locali</span>
+              <span className="badge-local">⏳ Connessione a Firebase…</span>
             )}
           </div>
         </div>
       </header>
+
+      {firebaseError && <p className="firebase-error" role="alert">{firebaseError}</p>}
 
       <p className="hint">
         💡 <strong>Modalità Lettura</strong>: Clicca su un evento per visualizzare la scheda di approfondimento storico e gli appunti.
