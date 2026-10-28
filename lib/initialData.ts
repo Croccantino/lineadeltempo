@@ -40,16 +40,32 @@ export function isTimelineColor(value: unknown): value is TimelineColor {
 
 type LegacyEvent = TimelineEvent & { col?: unknown };
 
+const MIN_VALID_YEAR = -10000;
+const MAX_VALID_YEAR = 10000;
+
 export function normalizeTimelineData(data: TimelineData): TimelineData {
-  const legacyEvents = data.events as LegacyEvent[];
+  const legacyEvents = Array.isArray(data?.events) ? (data.events as LegacyEvent[]) : [];
 
-  const events = legacyEvents.map((event) => {
-    const copy: LegacyEvent = { ...event };
-    delete copy.col;
-    return copy;
-  });
+  const events = legacyEvents
+    .filter((event) => {
+      if (typeof event !== "object" || event === null) return false;
+      if (typeof event.r !== "string" || !event.r) return false;
+      if (!Number.isFinite(event.y)) return false;
+      if (event.y < MIN_VALID_YEAR || event.y > MAX_VALID_YEAR) return false;
+      if (event.y2 !== undefined && event.y2 !== null) {
+        if (!Number.isFinite(event.y2)) return false;
+        if (event.y2 < MIN_VALID_YEAR || event.y2 > MAX_VALID_YEAR) return false;
+      }
+      if (typeof event.t !== "string") return false;
+      return true;
+    })
+    .map((event) => {
+      const copy: LegacyEvent = { ...event };
+      delete copy.col;
+      return copy;
+    });
 
-  const rows = data.rows.map((row, index) => {
+  const rows = (Array.isArray(data?.rows) ? data.rows : []).map((row, index) => {
     const legacyColor = legacyEvents.find(
       (event) => event.r === row.id && isTimelineColor(event.col)
     )?.col;

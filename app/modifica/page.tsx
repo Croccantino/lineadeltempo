@@ -8,6 +8,7 @@ import {
   TimelineEvent,
   TIMELINE_COLORS,
   getEventRowIds,
+  normalizeTimelineData,
 } from "../../lib/initialData";
 import {
   syncToFirebase,
@@ -75,8 +76,9 @@ export default function EditTimelinePage() {
     setFirebaseConnected(isFirebaseActive());
 
     const unsubscribe = subscribeToFirebase((data) => {
-      setRows(data.rows);
-      setEvents(data.events);
+      const normalized = normalizeTimelineData({ rows: data.rows, events: data.events });
+      setRows(normalized.rows);
+      setEvents(normalized.events);
       setFirebaseConnected(true);
     });
 
