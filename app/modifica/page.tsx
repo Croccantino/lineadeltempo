@@ -35,6 +35,7 @@ export default function EditTimelinePage() {
   const [events, setEvents] = useState<TimelineEvent[]>(INITIAL_DATA.events);
   const [ppy, setPpy] = useState<number>(10);
   const [firebaseConnected, setFirebaseConnected] = useState<boolean>(false);
+  const [firebaseError, setFirebaseError] = useState("");
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [rangeFrom, setRangeFrom] = useState<number | "">("");
   const [rangeTo, setRangeTo] = useState<number | "">("");
@@ -72,12 +73,19 @@ export default function EditTimelinePage() {
 
   // Inizializzazione
   useEffect(() => {
-    setFirebaseConnected(isFirebaseActive());
+    if (!isFirebaseActive()) {
+      setFirebaseError("Configurazione Firebase assente: le modifiche non verranno sincronizzate.");
+    }
 
     const unsubscribe = subscribeToFirebase((data) => {
       setRows(data.rows);
       setEvents(data.events);
       setFirebaseConnected(true);
+      setFirebaseError("");
+    }, (error) => {
+      console.error("Caricamento timeline da Firebase non riuscito:", error);
+      setFirebaseConnected(false);
+      setFirebaseError("Firebase non raggiungibile: le modifiche non verranno sincronizzate.");
     });
 
     return () => unsubscribe();
@@ -450,9 +458,8 @@ export default function EditTimelinePage() {
         {firebaseConnected ? (
           <span>🟢 <strong>Firebase Database Connesso:</strong> Le modifiche che salvi qui si sincronizzano all&apos;istante per tutti i visitatori.</span>
         ) : (
-          <span>
-            🟡 <strong>Database Firebase non configurato:</strong> controlla le variabili
-            d&apos;ambiente in <code>.env.local</code> prima di salvare.
+          <span role="alert">
+            🟡 <strong>{firebaseError || "Connessione a Firebase in corso…"}</strong>
           </span>
         )}
       </div>

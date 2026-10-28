@@ -272,7 +272,10 @@ export function subscribeToFirebase(
   onError?: (error: unknown) => void
 ): () => void {
   const db = getDbInstance();
-  if (!db) return () => {};
+  if (!db) {
+    onError?.(new Error("Firebase non configurato. Controlla la configurazione del database."));
+    return () => {};
+  }
 
   try {
     const unsubscribe = onValue(
@@ -281,16 +284,19 @@ export function subscribeToFirebase(
         const data = snapshot.val();
         if (data && Array.isArray(data.rows) && Array.isArray(data.events)) {
           onUpdate(normalizeTimelineData({ rows: data.rows, events: data.events }));
+        } else {
+          onError?.(new Error(`I dati Firebase in ${DB_PATH} non hanno il formato previsto.`));
         }
       },
       (err) => {
         console.warn("Errore listener Firebase:", err);
-        if (onError) onError(err);
+        onError?.(err);
       }
     );
     return unsubscribe;
   } catch (err) {
     console.warn("Impossibile connettere listener Firebase:", err);
+    onError?.(err);
     return () => {};
   }
 }
