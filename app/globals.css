@@ -553,6 +553,41 @@ textarea {
   font-weight: 700;
 }
 
+/* Ricerca testuale */
+.search-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.search-group .range-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+}
+
+.search-group input[type="search"] {
+  width: 180px;
+  min-height: 32px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  box-shadow: none;
+  background: var(--card);
+}
+
+.search-group button {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .range-group button {
   min-height: 32px;
   padding: 4px 10px;

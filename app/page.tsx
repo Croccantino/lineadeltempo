@@ -50,6 +50,7 @@ export default function ClientTimelinePage() {
     : null;
   const [rangeFrom, setRangeFrom] = useState<number | "">("");
   const [rangeTo, setRangeTo] = useState<number | "">("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [photoZoom, setPhotoZoom] = useState(false);
   const infoDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -106,9 +107,23 @@ export default function ClientTimelinePage() {
   let maxYear = Math.max(rawFrom, rawTo);
   if (minYear === maxYear) maxYear = minYear + 1;
 
+  // Testo di ricerca (case-insensitive) su titolo, appunti e anno
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const matchesSearch = (e: TimelineEvent) => {
+    if (!normalizedQuery) return true;
+    const countryNames = getEventRowIds(e)
+      .map((id) => rows.find((row) => row.id === id)?.name ?? "")
+      .join(" ");
+    const haystack = [e.t, e.n, e.y, endYear(e), countryNames]
+      .map((value) => (value == null ? "" : String(value)))
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(normalizedQuery);
+  };
+
   // Eventi visibili nell'intervallo scelto (un periodo è visibile se lo interseca)
   const visibleEvents = events.filter(
-    (e) => Number.isFinite(e.y) && e.y <= maxYear && endYear(e) >= minYear
+    (e) => Number.isFinite(e.y) && e.y <= maxYear && endYear(e) >= minYear && matchesSearch(e)
   );
 
   const step = (p: number) => {
@@ -272,6 +287,25 @@ export default function ClientTimelinePage() {
               }}
             >
               Tutti
+            </button>
+          </div>
+
+          <div className="search-group" title="Cerca eventi per titolo o appunti">
+            <span className="range-label">Cerca</span>
+            <input
+              type="search"
+              aria-label="Cerca eventi"
+              placeholder="Titolo o appunti…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              disabled={!searchQuery}
+              aria-label="Pulisci ricerca"
+            >
+              ✕
             </button>
           </div>
 
