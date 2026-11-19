@@ -172,6 +172,61 @@ export async function syncToFirebase(
   }
 }
 
+export function subscribeToUserFavorites(
+  uid: string,
+  onUpdate: (eventIds: Set<string>) => void,
+  onError?: (error: unknown) => void
+): () => void {
+  const db = getDbInstance();
+  if (!db) {
+    onUpdate(new Set());
+    return () => {};
+  }
+
+  try {
+    return onValue(
+      ref(db, `users/${uid}/favorites`),
+      (snapshot) => {
+        const data = snapshot.val() as Record<string, unknown> | null;
+        const eventIds = new Set<string>();
+        if (data && typeof data === "object") {
+          for (const [eventId, value] of Object.entries(data)) {
+            if (value === true) eventIds.add(eventId);
+          }
+        }
+        onUpdate(eventIds);
+      },
+      (err) => {
+        console.warn("Errore lettura preferiti Firebase:", err);
+        onError?.(err);
+        onUpdate(new Set());
+      }
+    );
+  } catch (err) {
+    console.warn("Impossibile connettere il listener dei preferiti:", err);
+    onError?.(err);
+    onUpdate(new Set());
+    return () => {};
+  }
+}
+
+export async function setUserFavorite(uid: string, eventId: string, starred: boolean): Promise<boolean> {
+  const db = getDbInstance();
+  if (!db) return false;
+  try {
+    const favoriteRef = ref(db, `users/${uid}/favorites/${eventId}`);
+    if (starred) {
+      await set(favoriteRef, true);
+    } else {
+      await remove(favoriteRef);
+    }
+    return true;
+  } catch (err) {
+    console.error("Errore salvataggio preferito Firebase:", err);
+    return false;
+  }
+}
+
 export interface FeedbackEntry {
   id: string;
   rating: number;

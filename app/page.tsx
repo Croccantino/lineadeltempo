@@ -9,7 +9,8 @@ import {
   getEventRowIds,
   normalizeTimelineData,
 } from "../lib/initialData";
-import { subscribeToFirebase, isFirebaseActive, syncToFirebase } from "../lib/firebase";
+import { subscribeToFirebase, isFirebaseActive, subscribeToUserFavorites, setUserFavorite } from "../lib/firebase";
+import { useAuth } from "../lib/useAuth";
 import { getYouTubeId, sanitizeLink, youtubeEmbedUrl } from "../lib/media";
 import { useResolvedImage } from "../lib/useResolvedImage";
 import AuthBar from "./components/AuthBar";
@@ -52,6 +53,8 @@ export default function ClientTimelinePage() {
   const [rangeTo, setRangeTo] = useState<number | "">("");
   const [searchQuery, setSearchQuery] = useState("");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const { user } = useAuth();
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [photoZoom, setPhotoZoom] = useState(false);
   const infoDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -92,6 +95,23 @@ export default function ClientTimelinePage() {
     return () => unsubscribe();
   }, []);
 
+  // Preferiti dell'utente corrente (per account)
+  useEffect(() => {
+    if (!user) {
+      setFavorites(new Set());
+      return;
+    }
+    const unsubscribe = subscribeToUserFavorites(
+      user.uid,
+      (eventIds) => setFavorites(eventIds),
+      (error) => {
+        console.warn("Preferiti non caricati:", error);
+        setFavorites(new Set());
+      }
+    );
+    return unsubscribe;
+  }, [user]);
+
   // Un evento è un periodo se ha un anno finale maggiore di quello iniziale
   const endYear = (e: TimelineEvent) =>
     Number.isFinite(e.y2) && Number(e.y2) > e.y ? Number(e.y2) : e.y;
@@ -129,7 +149,7 @@ export default function ClientTimelinePage() {
       e.y <= maxYear &&
       endYear(e) >= minYear &&
       matchesSearch(e) &&
-      (!favoritesOnly || Boolean(e.starred))
+      (!favoritesOnly || favorites.has(e.id))
   );
 
   const step = (p: number) => {
@@ -163,14 +183,20 @@ export default function ClientTimelinePage() {
   const selectedLink = selectedEvent ? sanitizeLink(selectedEvent.link || "") : "";
   const selectedVideoId = getYouTubeId(selectedEvent?.video || "");
 
-  // Aggiunge o rimuove l'evento dai preferiti e lo persiste su Firebase
+  // Aggiunge o rimuove l'evento dai preferiti dell'utente corrente e lo persiste su Firebase
   const toggleStar = async (event: TimelineEvent) => {
-    const starred = !event.starred;
-    const updated = events.map((item) => (item.id === event.id ? { ...item, starred } : item));
-    setEvents(updated);
-    const synced = await syncToFirebase(rows, updated);
-    if (!synced) {
-      console.warn("Preferito non salvato su Firebase: il cambio non è persistito.");
+    const nextStarred = !favorites.has(event.id);
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (nextStarred) next.add(event.id);
+      else next.delete(event.id);
+      return next;
+    });
+    if (user?.uid) {
+      const saved = await setUserFavorite(user.uid, event.id, nextStarred);
+      if (!saved) {
+        console.warn("Preferito non salvato su Firebase.");
+      }
     }
   };
 
@@ -362,12 +388,12 @@ export default function ClientTimelinePage() {
             <div className="note-star-row">
               <button
                 type="button"
-                className={`note-star${selectedEvent.starred ? " active" : ""}`}
+                className={`note-star${favorites.has(selectedEvent.id) ? " active" : ""}`}
                 onClick={() => toggleStar(selectedEvent)}
-                title={selectedEvent.starred ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
-                aria-label={selectedEvent.starred ? `Rimuovi ${selectedEvent.t} dai preferiti` : `Aggiungi ${selectedEvent.t} ai preferiti`}
+                title={favorites.has(selectedEvent.id) ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
+                aria-label={favorites.has(selectedEvent.id) ? `Rimuovi ${selectedEvent.t} dai preferiti` : `Aggiungi ${selectedEvent.t} ai preferiti`}
               >
-                {selectedEvent.starred ? "★" : "☆"}
+                {favorites.has(selectedEvent.id) ? "★" : "☆"}
               </button>
             </div>
 

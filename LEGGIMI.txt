@@ -156,8 +156,9 @@ Nella barra di ricerca della vista client è presente il pulsante con la
 stella: al passaggio del mouse mostra "Filtra preferiti" e, cliccandolo,
 mostra nella timeline solo gli eventi messi in preferiti.
 
-L'evento contrassegnato viene salvato con il campo `starred` su Firebase
-Realtime Database e persiste nella timeline condivisa.
+I preferiti dell'utente corrente vengono salvati su Firebase Realtime
+Database in `users/<uid>/favorites/<eventId>`: lo stato è quindi relativo
+all'account che ha effettuato la scelta.
 
 NASCONDI / MOSTRA
 -----------------
