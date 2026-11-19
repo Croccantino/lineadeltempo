@@ -53,6 +53,7 @@ export default function EditTimelinePage() {
   const [formImg, setFormImg] = useState("");
   const [formLink, setFormLink] = useState("");
   const [formVideo, setFormVideo] = useState("");
+  const [formNotesHidden, setFormNotesHidden] = useState(false);
   const [imgError, setImgError] = useState("");
   const [videoError, setVideoError] = useState("");
   const [pendingImage, setPendingImage] = useState<{ blob: Blob; previewUrl: string } | null>(null);
@@ -113,6 +114,7 @@ export default function EditTimelinePage() {
     setFormImg(ev.img || "");
     setFormLink(ev.link || "");
     setFormVideo(ev.video || "");
+    setFormNotesHidden(false);
     setImgError("");
     setVideoError("");
     setModalOpen(true);
@@ -216,6 +218,7 @@ export default function EditTimelinePage() {
     setFormImg("");
     setFormLink("");
     setFormVideo("");
+    setFormNotesHidden(false);
     setImgError("");
     setVideoError("");
     setModalOpen(true);
@@ -712,12 +715,24 @@ export default function EditTimelinePage() {
           />
 
           <label htmlFor="n">Appunti / Note storiche</label>
-          <textarea
-            id="n"
-            placeholder="Cause, protagonisti, conseguenze..."
-            value={formNotes}
-            onChange={(e) => setFormNotes(e.target.value)}
-          />
+          <div className="notes-field">
+            <textarea
+              id="n"
+              placeholder="Cause, protagonisti, conseguenze..."
+              value={formNotesHidden ? "" : formNotes}
+              onChange={(e) => setFormNotes(e.target.value)}
+            />
+            <button
+              type="button"
+              className="notes-toggle"
+              onClick={() => setFormNotesHidden((value) => !value)}
+              title={formNotesHidden ? "Mostra gli appunti" : "Nascondi gli appunti"}
+              aria-label={formNotesHidden ? "Mostra gli appunti" : "Nascondi gli appunti"}
+              aria-pressed={formNotesHidden}
+            >
+              {formNotesHidden ? "🙈" : "👁️"}
+            </button>
+          </div>
 
           <label htmlFor="imgFile">Immagine (carica un file)</label>
           <input id="imgFile" type="file" accept="image/*" onChange={handleImageFile} />

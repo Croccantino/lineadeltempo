@@ -9,7 +9,7 @@ import {
   getEventRowIds,
   normalizeTimelineData,
 } from "../lib/initialData";
-import { subscribeToFirebase, isFirebaseActive } from "../lib/firebase";
+import { subscribeToFirebase, isFirebaseActive, syncToFirebase } from "../lib/firebase";
 import { getYouTubeId, sanitizeLink, youtubeEmbedUrl } from "../lib/media";
 import { useResolvedImage } from "../lib/useResolvedImage";
 import AuthBar from "./components/AuthBar";
@@ -51,6 +51,7 @@ export default function ClientTimelinePage() {
   const [rangeFrom, setRangeFrom] = useState<number | "">("");
   const [rangeTo, setRangeTo] = useState<number | "">("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [photoZoom, setPhotoZoom] = useState(false);
   const infoDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -123,7 +124,12 @@ export default function ClientTimelinePage() {
 
   // Eventi visibili nell'intervallo scelto (un periodo è visibile se lo interseca)
   const visibleEvents = events.filter(
-    (e) => Number.isFinite(e.y) && e.y <= maxYear && endYear(e) >= minYear && matchesSearch(e)
+    (e) =>
+      Number.isFinite(e.y) &&
+      e.y <= maxYear &&
+      endYear(e) >= minYear &&
+      matchesSearch(e) &&
+      (!favoritesOnly || Boolean(e.starred))
   );
 
   const step = (p: number) => {
@@ -156,6 +162,17 @@ export default function ClientTimelinePage() {
   const { src: selectedImg } = useResolvedImage(selectedEvent?.img);
   const selectedLink = selectedEvent ? sanitizeLink(selectedEvent.link || "") : "";
   const selectedVideoId = getYouTubeId(selectedEvent?.video || "");
+
+  // Aggiunge o rimuove l'evento dai preferiti e lo persiste su Firebase
+  const toggleStar = async (event: TimelineEvent) => {
+    const starred = !event.starred;
+    const updated = events.map((item) => (item.id === event.id ? { ...item, starred } : item));
+    setEvents(updated);
+    const synced = await syncToFirebase(rows, updated);
+    if (!synced) {
+      console.warn("Preferito non salvato su Firebase: il cambio non è persistito.");
+    }
+  };
 
   return (
     <div id="app">
@@ -307,6 +324,16 @@ export default function ClientTimelinePage() {
             >
               ✕
             </button>
+            <button
+              type="button"
+              className={`star-filter${favoritesOnly ? " active" : ""}`}
+              onClick={() => setFavoritesOnly((value) => !value)}
+              title="Filtra preferiti"
+              aria-label="Filtra preferiti"
+              aria-pressed={favoritesOnly}
+            >
+              {favoritesOnly ? "★" : "☆"}
+            </button>
           </div>
 
           <Link href="/modifica" className="btn-edit-nav">
@@ -331,6 +358,18 @@ export default function ClientTimelinePage() {
         >
           <article className={`note c-${selectedNoteColor}`}>
             <span className="note-tape" aria-hidden="true" />
+
+            <div className="note-star-row">
+              <button
+                type="button"
+                className={`note-star${selectedEvent.starred ? " active" : ""}`}
+                onClick={() => toggleStar(selectedEvent)}
+                title={selectedEvent.starred ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
+                aria-label={selectedEvent.starred ? `Rimuovi ${selectedEvent.t} dai preferiti` : `Aggiungi ${selectedEvent.t} ai preferiti`}
+              >
+                {selectedEvent.starred ? "★" : "☆"}
+              </button>
+            </div>
 
             <div className="note-head">
               <span className="note-year">

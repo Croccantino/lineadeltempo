@@ -19,6 +19,7 @@ export interface TimelineEvent {
   link?: string; // external reference link
   video?: string; // YouTube video URL
   rs?: string[]; // additional row ids beyond the primary r
+  starred?: boolean; // true quando l'evento è stato messo tra i preferiti
 }
 
 export function getEventRowIds(event: TimelineEvent): string[] {

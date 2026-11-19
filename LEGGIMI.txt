@@ -146,6 +146,25 @@ va aggiunta l'autenticazione e vanno ristrette le regole di scrittura.
 Le vecchie regole Firestore/Storage e i file statici (index.html, app.js,
 style.css) non sono più usati.
 
+PREFERITI
+---------
+Ogni evento può essere segnato con una stella (★) nella scheda di lettura
+aperta dal banner del clic sull'evento: la stella mostra lo stato del
+preferito e permette di aggiungerlo o rimuoverlo.
+
+Nella barra di ricerca della vista client è presente il pulsante con la
+stella: al passaggio del mouse mostra "Filtra preferiti" e, cliccandolo,
+mostra nella timeline solo gli eventi messi in preferiti.
+
+L'evento contrassegnato viene salvato con il campo `starred` su Firebase
+Realtime Database e persiste nella timeline condivisa.
+
+NASCONDI / MOSTRA
+-----------------
+Nella schermata di modifica dell'evento è presente il pulsante con l'occhio
+(👁️/🙈) accanto agli appunti: permette di nascondere o mostrare il testo mentre
+si digita.
+
 LIMITI
 ------
 - Limite applicativo immagini: 2 MB.
