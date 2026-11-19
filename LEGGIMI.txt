@@ -164,7 +164,8 @@ NASCONDI / MOSTRA
 -----------------
 Nella schermata di modifica dell'evento è presente il pulsante con l'occhio
 (👁️/🙈) per nascondere o mostrare l'evento dalla timeline: gli eventi nascosti
-compaiono in sbiadito nella timeline.
+compaiono in sbiadito nella timeline. Nella vista client gli eventi nascosti
+non compaiono nella timeline.
 
 LIMITI
 ------

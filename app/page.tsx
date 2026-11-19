@@ -149,7 +149,8 @@ export default function ClientTimelinePage() {
       e.y <= maxYear &&
       endYear(e) >= minYear &&
       matchesSearch(e) &&
-      (!favoritesOnly || favorites.has(e.id))
+      (!favoritesOnly || favorites.has(e.id)) &&
+      !e.hidden
   );
 
   const step = (p: number) => {
