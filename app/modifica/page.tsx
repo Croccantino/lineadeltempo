@@ -53,7 +53,6 @@ export default function EditTimelinePage() {
   const [formImg, setFormImg] = useState("");
   const [formLink, setFormLink] = useState("");
   const [formVideo, setFormVideo] = useState("");
-  const [formNotesHidden, setFormNotesHidden] = useState(false);
   const [imgError, setImgError] = useState("");
   const [videoError, setVideoError] = useState("");
   const [pendingImage, setPendingImage] = useState<{ blob: Blob; previewUrl: string } | null>(null);
@@ -114,7 +113,6 @@ export default function EditTimelinePage() {
     setFormImg(ev.img || "");
     setFormLink(ev.link || "");
     setFormVideo(ev.video || "");
-    setFormNotesHidden(false);
     setImgError("");
     setVideoError("");
     setModalOpen(true);
@@ -218,7 +216,6 @@ export default function EditTimelinePage() {
     setFormImg("");
     setFormLink("");
     setFormVideo("");
-    setFormNotesHidden(false);
     setImgError("");
     setVideoError("");
     setModalOpen(true);
@@ -346,6 +343,12 @@ export default function EditTimelinePage() {
     const updated = events.filter((item) => item.id !== editingEvent.id);
     const saved = await persistChanges(rows, updated);
     if (saved) closeModal();
+  };
+
+  const toggleEventHidden = async (ev: TimelineEvent) => {
+    const nextHidden = !ev.hidden;
+    const updated = events.map((item) => (item.id === ev.id ? { ...item, hidden: nextHidden } : item));
+    await persistChanges(rows, updated);
   };
 
   const handleAddCountry = async () => {
@@ -549,7 +552,7 @@ export default function EditTimelinePage() {
                     return (
                       <button
                         key={ev.id}
-                        className={`chip c-${row.col}`}
+                        className={`chip c-${row.col}${ev.hidden ? " is-hidden" : ""}`}
                         style={{
                           left: `${x}px`,
                           top: `${6 + lane * LH}px`,
@@ -715,24 +718,12 @@ export default function EditTimelinePage() {
           />
 
           <label htmlFor="n">Appunti / Note storiche</label>
-          <div className="notes-field">
-            <textarea
-              id="n"
-              placeholder="Cause, protagonisti, conseguenze..."
-              value={formNotesHidden ? "" : formNotes}
-              onChange={(e) => setFormNotes(e.target.value)}
-            />
-            <button
-              type="button"
-              className="notes-toggle"
-              onClick={() => setFormNotesHidden((value) => !value)}
-              title={formNotesHidden ? "Mostra gli appunti" : "Nascondi gli appunti"}
-              aria-label={formNotesHidden ? "Mostra gli appunti" : "Nascondi gli appunti"}
-              aria-pressed={formNotesHidden}
-            >
-              {formNotesHidden ? "🙈" : "👁️"}
-            </button>
-          </div>
+          <textarea
+            id="n"
+            placeholder="Cause, protagonisti, conseguenze..."
+            value={formNotes}
+            onChange={(e) => setFormNotes(e.target.value)}
+          />
 
           <label htmlFor="imgFile">Immagine (carica un file)</label>
           <input id="imgFile" type="file" accept="image/*" onChange={handleImageFile} />
@@ -818,6 +809,16 @@ export default function EditTimelinePage() {
             <button type="submit" className="grow">
               Salva su Cloud
             </button>
+            {editingEvent && (
+              <button
+                type="button"
+                onClick={() => toggleEventHidden(editingEvent)}
+                title={editingEvent.hidden ? "Mostra evento" : "Nascondi evento"}
+                aria-label={editingEvent.hidden ? `Mostra ${editingEvent.t}` : `Nascondi ${editingEvent.t}`}
+              >
+                {editingEvent.hidden ? "🙈" : "👁️"}
+              </button>
+            )}
             {editingEvent && (
               <button type="button" className="danger" onClick={handleDeleteEvent}>
                 Elimina

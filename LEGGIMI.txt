@@ -163,8 +163,8 @@ all'account che ha effettuato la scelta.
 NASCONDI / MOSTRA
 -----------------
 Nella schermata di modifica dell'evento è presente il pulsante con l'occhio
-(👁️/🙈) accanto agli appunti: permette di nascondere o mostrare il testo mentre
-si digita.
+(👁️/🙈) per nascondere o mostrare l'evento dalla timeline: gli eventi nascosti
+compaiono in sbiadito nella timeline.
 
 LIMITI
 ------

@@ -19,6 +19,7 @@ export interface TimelineEvent {
   link?: string; // external reference link
   video?: string; // YouTube video URL
   rs?: string[]; // additional row ids beyond the primary r
+  hidden?: boolean; // true quando l'evento è stato nascosto dalla timeline
 }
 
 export function getEventRowIds(event: TimelineEvent): string[] {

@@ -274,7 +274,7 @@ export default function ClientTimelinePage() {
                     return (
                       <button
                         key={ev.id}
-                        className={`chip c-${row.col}`}
+                        className={`chip c-${row.col}${ev.hidden ? " is-hidden" : ""}`}
                         style={{ left: `${x}px`, top: `${6 + lane * LH}px`, width: `${barWidth}px` }}
                         onClick={() => setSelectedEventId(ev.id)}
                       >
